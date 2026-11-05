@@ -232,7 +232,7 @@ function showMessage(text,duration=0){
 function target(){
   return{x:W/2+targetOffset,y:H*.38,r:Math.min(W*.16,75)};
 }
-function newWind(){wind=(Math.random()-.5)*.12}
+function newWind(){wind=(Math.random()-.5)*.025}
 
 function startGame(){
   clearTimeout(messageTimer);
@@ -407,7 +407,7 @@ function draw(){
   if(mode==="playing"&&ball&&!ball.done){
     ball.x+=ball.vx;
     ball.y+=ball.vy;
-    ball.vx+=wind;
+    ball.vx+=wind*.35;
     ball.vy+=.20;
 
     if(ball.vy>0&&
