@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <meta name="theme-color" content="#281060">
-<title>Flick Frenzy</title>
+<title>Flick Frenzy V0.3</title>
 <style>
 *{box-sizing:border-box}
 html,body{margin:0;width:100%;height:100%;overflow:hidden}
@@ -15,47 +15,89 @@ body{
   -webkit-user-select:none;
 }
 canvas{display:block;width:100%;height:100%;touch-action:none}
+.screen{
+  position:absolute;inset:0;z-index:5;
+  display:none;align-items:center;justify-content:center;
+  background:linear-gradient(145deg,#240b65,#6827b4 60%,#04b9d1);
+  padding:20px;
+}
+.screen.active{display:flex}
+.panel{
+  width:100%;max-width:420px;
+  max-height:90dvh;overflow-y:auto;
+  padding:24px 18px;
+  background:rgba(24,9,75,.85);
+  border:2px solid #8e69ff;
+  border-radius:24px;text-align:center;
+  box-shadow:0 15px 45px #14053680;
+}
+h1{font-size:42px;line-height:1;margin:10px 0;color:#ffe65c;
+  text-shadow:0 4px #ed389b}
+h2{margin:8px 0 20px;color:#ffe65c}
+p{color:#e5dcff}
+button{
+  cursor:pointer;border:0;border-radius:14px;
+  padding:14px 18px;font-size:17px;font-weight:900;
+  background:#ffdf44;color:#281050;
+}
+.menu-btn{display:block;width:100%;margin:12px 0}
+.secondary{background:#8b5cf6;color:white}
 #hud{
-  position:absolute;
-  top:calc(env(safe-area-inset-top) + 15px);
+  position:absolute;z-index:2;
+  top:calc(env(safe-area-inset-top) + 12px);
   left:0;width:100%;
-  display:grid;grid-template-columns:1fr 1fr;
-  gap:8px;padding:0 14px;
-  pointer-events:none;
+  display:none;grid-template-columns:1fr 1fr 1fr;
+  gap:6px;padding:0 10px;pointer-events:none;
 }
 .stat{
-  background:rgba(30,12,80,.65);
-  border:1px solid rgba(255,255,255,.25);
-  border-radius:13px;
-  padding:9px;text-align:center;
-  font-size:15px;font-weight:bold;
+  background:rgba(30,12,80,.7);
+  border:1px solid #ffffff40;border-radius:10px;
+  padding:8px 3px;text-align:center;
+  font-size:12px;font-weight:bold;
 }
 #message{
-  position:absolute;top:24%;left:0;
-  width:100%;text-align:center;
-  font-size:27px;font-weight:900;
+  position:absolute;top:25%;width:100%;
+  text-align:center;font-size:26px;font-weight:900;
   text-shadow:0 3px 12px #150530;
   pointer-events:none;
 }
 #hint{
-  position:absolute;bottom:8%;
-  width:100%;text-align:center;
-  font-size:16px;color:#e5e3ff;
+  position:absolute;bottom:7%;width:100%;
+  text-align:center;font-size:15px;color:#e5e3ff;
   pointer-events:none;
 }
+#pause{
+  position:absolute;z-index:3;right:12px;
+  bottom:calc(env(safe-area-inset-bottom) + 12px);
+  display:none;padding:10px 16px;font-size:13px;
+}
 #again{
-  display:none;position:absolute;
+  display:none;position:absolute;z-index:3;
   top:58%;left:50%;transform:translateX(-50%);
-  border:0;border-radius:16px;
-  background:#ffdf44;color:#24104d;
-  font-size:20px;font-weight:900;
-  padding:17px 32px;
-  box-shadow:0 7px 0 #c99d14;
   white-space:nowrap;
 }
+.skin{
+  padding:12px;margin:12px 0;border:1px solid #9278ed;
+  border-radius:16px;background:#351675;
+}
+.skin-ball{
+  width:65px;height:65px;margin:4px auto 10px;
+  border-radius:50%;
+  box-shadow:0 0 24px currentColor;
+}
+.skin h3{margin:6px 0}
+.skin p{margin:5px 0 12px}
+.skin button{width:100%}
+.skin button:disabled{opacity:.6}
+.row{display:flex;justify-content:space-between;align-items:center;
+  margin:18px 0;text-align:left;gap:12px}
+.toggle{min-width:90px}
+.small{font-size:13px}
 </style>
 </head>
 <body>
+
+<canvas id="game"></canvas>
 
 <div id="hud">
   <div class="stat" id="score">Score: 0</div>
@@ -65,144 +107,175 @@ canvas{display:block;width:100%;height:100%;touch-action:none}
   <div class="stat" id="best">Best: 0</div>
   <div class="stat" id="wind">Wind: 0</div>
 </div>
-
-<div id="message">FLICK FRENZY</div>
-<div id="hint">Swipe up to throw!</div>
+<div id="message"></div>
+<div id="hint"></div>
+<button id="pause" class="secondary">MENU</button>
 <button id="again">PLAY AGAIN</button>
-<canvas id="game"></canvas>
+
+<div id="menu" class="screen active">
+  <div class="panel">
+    <h1>FLICK<br>FRENZY</h1>
+    <p>Flick. Score. Repeat!</p>
+    <div style="font-size:70px;margin:20px">🏀</div>
+    <p id="menuStats"></p>
+    <button class="menu-btn" id="playBtn">▶ PLAY</button>
+    <button class="menu-btn secondary" id="shopBtn">🛒 SHOP</button>
+    <button class="menu-btn secondary" id="settingsBtn">⚙ SETTINGS</button>
+    <p class="small">Version 0.3</p>
+  </div>
+</div>
+
+<div id="shop" class="screen">
+  <div class="panel">
+    <h2>🛒 BALL SHOP</h2>
+    <p id="shopCoins"></p>
+    <div id="skinList"></div>
+    <button class="menu-btn secondary" id="shopBack">← BACK</button>
+  </div>
+</div>
+
+<div id="settings" class="screen">
+  <div class="panel">
+    <h2>⚙ SETTINGS</h2>
+    <div class="row">
+      <strong>Sound effects</strong>
+      <button class="toggle" id="soundToggle"></button>
+    </div>
+    <div class="row">
+      <strong>Visual effects</strong>
+      <button class="toggle" id="effectsToggle"></button>
+    </div>
+    <p class="small">Wind balance will be adjusted in a future update.</p>
+    <button class="menu-btn secondary" id="settingsBack">← BACK</button>
+  </div>
+</div>
 
 <script>
 "use strict";
 
-const canvas=document.getElementById("game");
-const ctx=canvas.getContext("2d");
-const scoreEl=document.getElementById("score");
-const missEl=document.getElementById("miss");
-const comboEl=document.getElementById("combo");
-const coinsEl=document.getElementById("coins");
-const bestEl=document.getElementById("best");
-const windEl=document.getElementById("wind");
-const message=document.getElementById("message");
-const hint=document.getElementById("hint");
-const again=document.getElementById("again");
+const $=id=>document.getElementById(id);
+const canvas=$("game"),ctx=canvas.getContext("2d");
+let W=0,H=0,score=0,misses=0,combo=0;
+let coins=0,best=0,ball=null,start=null;
+let over=false,locked=false,targetOffset=0,wind=0;
+let shotStart=0,messageTimer=null,mode="menu";
+let soundOn=true,effectsOn=true;
+let owned=["classic"],equipped="classic";
 
-let W=0,H=0;
-let score=0,misses=0,combo=0;
-let coins=0,best=0;
-let ball=null,start=null;
-let over=false,locked=false;
-let targetOffset=0;
-let wind=0;
-let shotStart=0;
-let messageTimer=null;
+const skins=[
+  {id:"classic",name:"Classic Neon",price:0,color:"#73faff",glow:"#73faff"},
+  {id:"fire",name:"Fireball",price:500,color:"#ff7b28",glow:"#ff3300"},
+  {id:"ice",name:"Ice Ball",price:750,color:"#8ceaff",glow:"#2fbbff"},
+  {id:"gold",name:"Golden Ball",price:1500,color:"#ffd447",glow:"#fff27a"}
+];
 
-try{
-  coins=Number(localStorage.getItem("ff_coins"))||0;
-  best=Number(localStorage.getItem("ff_best"))||0;
-}catch(e){}
-
+function load(){
+  try{
+    coins=Number(localStorage.getItem("ff_coins"))||0;
+    best=Number(localStorage.getItem("ff_best"))||0;
+    const saved=JSON.parse(localStorage.getItem("ff_owned")||'["classic"]');
+    if(Array.isArray(saved))owned=saved.filter(x=>skins.some(s=>s.id===x.id||s.id===x));
+    if(!owned.includes("classic"))owned.unshift("classic");
+    equipped=localStorage.getItem("ff_equipped")||"classic";
+    if(!owned.includes(equipped))equipped="classic";
+    soundOn=localStorage.getItem("ff_sound")!=="false";
+    effectsOn=localStorage.getItem("ff_effects")!=="false";
+  }catch(e){}
+}
 function save(){
   try{
     localStorage.setItem("ff_coins",coins);
     localStorage.setItem("ff_best",best);
+    localStorage.setItem("ff_owned",JSON.stringify(owned));
+    localStorage.setItem("ff_equipped",equipped);
+    localStorage.setItem("ff_sound",soundOn);
+    localStorage.setItem("ff_effects",effectsOn);
   }catch(e){}
 }
+load();
 
 function resize(){
-  W=canvas.width=window.innerWidth;
-  H=canvas.height=window.innerHeight;
+  W=canvas.width=innerWidth;
+  H=canvas.height=innerHeight;
 }
-window.addEventListener("resize",resize);
-resize();
+addEventListener("resize",resize);resize();
+
+function showScreen(id){
+  mode=id;
+  document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));
+  if(id!=="playing")$(id).classList.add("active");
+  $("hud").style.display=id==="playing"?"grid":"none";
+  $("pause").style.display=id==="playing"&&!over?"block":"none";
+  $("again").style.display=id==="playing"&&over?"block":"none";
+  $("message").style.display=id==="playing"?"block":"none";
+  $("hint").style.display=id==="playing"?"block":"none";
+  if(id==="menu")$("menuStats").textContent="🏆 Best: "+best+"   🪙 Coins: "+coins;
+  if(id==="shop")renderShop();
+  if(id==="settings")renderSettings();
+}
 
 function updateHUD(){
-  scoreEl.textContent="Score: "+score;
-  missEl.textContent="Misses: "+misses+"/3";
-  comboEl.textContent="Combo: "+combo+"x";
-  coinsEl.textContent="Coins: "+coins;
-  bestEl.textContent="Best: "+best;
-  windEl.textContent="Wind: "+wind.toFixed(1);
+  $("score").textContent="Score: "+score;
+  $("miss").textContent="Misses: "+misses+"/3";
+  $("combo").textContent="Combo: "+combo+"x";
+  $("coins").textContent="Coins: "+coins;
+  $("best").textContent="Best: "+best;
+  $("wind").textContent="Wind: "+wind.toFixed(1);
 }
-
 function showMessage(text,duration=0){
   clearTimeout(messageTimer);
-  message.textContent=text;
-  if(duration>0){
-    messageTimer=setTimeout(()=>{
-      if(!over)message.textContent="";
-    },duration);
-  }
+  $("message").textContent=text;
+  if(duration>0)messageTimer=setTimeout(()=>{
+    if(!over)$("message").textContent="";
+  },duration);
 }
-
 function target(){
-  return{
-    x:W/2+targetOffset,
-    y:H*.38,
-    r:Math.min(W*.16,75)
-  };
+  return{x:W/2+targetOffset,y:H*.38,r:Math.min(W*.16,75)};
 }
+function newWind(){wind=(Math.random()-.5)*.12}
 
-function newWind(){
-  wind=(Math.random()-.5)*.12;
-}
-
-function reset(){
+function startGame(){
   clearTimeout(messageTimer);
-  score=0;
-  misses=0;
-  combo=0;
-  ball=null;
-  start=null;
-  locked=false;
-  over=false;
+  score=misses=combo=0;
+  ball=start=null;
+  over=locked=false;
   targetOffset=0;
   newWind();
-  again.style.display="none";
-  hint.textContent="Swipe up to throw!";
-  showMessage("FLICK FRENZY",1400);
+  $("hint").textContent="Swipe up to throw!";
+  showScreen("playing");
+  showMessage("FLICK FRENZY",1200);
   updateHUD();
 }
 
 function finish(hit,perfect=false){
-  if(!ball||ball.done)return;
-
-  ball.done=true;
-  locked=true;
-
+  if(!ball||ball.done||mode!=="playing")return;
+  ball.done=true;locked=true;
   if(hit){
     combo++;
-    const multiplier=Math.min(combo,3);
-    const gained=10*multiplier+(perfect?20:0);
-    const earned=5+(perfect?5:0);
-
+    const gained=10*Math.min(combo,3)+(perfect?20:0);
     score+=gained;
-    coins+=earned;
-
+    coins+=5+(perfect?5:0);
     if(score>best)best=score;
-
-    showMessage(
-      perfect?"PERFECT! +"+gained:
-      "NICE SHOT! +"+gained
-    );
-
+    showMessage(perfect?"PERFECT! +"+gained:"NICE SHOT! +"+gained);
     targetOffset=(Math.random()-.5)*W*.35;
     newWind();
     save();
+    beep(650);
   }else{
-    misses++;
-    combo=0;
+    misses++;combo=0;
     showMessage("MISSED!");
+    beep(220);
   }
-
   updateHUD();
-
   setTimeout(()=>{
     ball=null;
+    if(mode!=="playing")return;
     if(misses>=3){
       over=true;
       showMessage("GAME OVER! Score: "+score);
-      hint.textContent="Try to beat your best!";
-      again.style.display="block";
+      $("hint").textContent="Try to beat your best!";
+      $("again").style.display="block";
+      $("pause").style.display="none";
     }else{
       locked=false;
       showMessage("SWIPE TO THROW",1100);
@@ -210,78 +283,113 @@ function finish(hit,perfect=false){
   },750);
 }
 
+let audioCtx=null;
+function beep(freq){
+  if(!soundOn)return;
+  try{
+    audioCtx=audioCtx||new (window.AudioContext||window.webkitAudioContext)();
+    const osc=audioCtx.createOscillator();
+    const gain=audioCtx.createGain();
+    osc.type="sine";osc.frequency.value=freq;
+    gain.gain.setValueAtTime(.07,audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(.001,audioCtx.currentTime+.15);
+    osc.connect(gain);gain.connect(audioCtx.destination);
+    osc.start();osc.stop(audioCtx.currentTime+.15);
+  }catch(e){}
+}
+
 canvas.addEventListener("pointerdown",e=>{
-  if(over||locked||ball)return;
+  if(mode!=="playing"||over||locked||ball)return;
   start={x:e.clientX,y:e.clientY};
 });
-
 canvas.addEventListener("pointerup",e=>{
-  if(!start||over||locked||ball)return;
-
-  const dx=e.clientX-start.x;
-  const dy=e.clientY-start.y;
+  if(!start||mode!=="playing"||over||locked||ball)return;
+  const dx=e.clientX-start.x,dy=e.clientY-start.y;
   start=null;
-
   if(dy>=-20)return;
-
-  // Faster throwing physics from version 0.1
-  const power=Math.min(
-    2,Math.max(.8,-dy/(H*.2))
-  );
-
+  const power=Math.min(2,Math.max(.8,-dy/(H*.2)));
   ball={
-    x:W/2,
-    y:H*.82,
+    x:W/2,y:H*.82,
     vx:dx*.025,
     vy:-Math.max(12,H*.020)*power,
-    r:25,
-    done:false
+    r:25,done:false
   };
-
   shotStart=performance.now();
   showMessage("");
 });
+canvas.addEventListener("pointercancel",()=>start=null);
 
-canvas.addEventListener("pointercancel",()=>{
-  start=null;
-});
-
-again.addEventListener("click",reset);
+function renderShop(){
+  $("shopCoins").textContent="🪙 Your coins: "+coins;
+  const list=$("skinList");
+  list.innerHTML="";
+  skins.forEach(s=>{
+    const card=document.createElement("div");
+    card.className="skin";
+    const preview=document.createElement("div");
+    preview.className="skin-ball";
+    preview.style.background="radial-gradient(circle at 30% 25%,white,"+s.color+" 45%,"+s.glow+")";
+    preview.style.color=s.glow;
+    const title=document.createElement("h3");
+    title.textContent=s.name;
+    const price=document.createElement("p");
+    price.textContent=s.price===0?"Free":s.price+" coins";
+    const button=document.createElement("button");
+    const isOwned=owned.includes(s.id);
+    if(equipped===s.id){
+      button.textContent="✓ EQUIPPED";button.disabled=true;
+    }else if(isOwned){
+      button.textContent="EQUIP";
+      button.onclick=()=>{equipped=s.id;save();renderShop()};
+    }else{
+      button.textContent="BUY — "+s.price+" COINS";
+      button.disabled=coins<s.price;
+      button.onclick=()=>{
+        if(coins<s.price||owned.includes(s.id))return;
+        coins-=s.price;owned.push(s.id);
+        equipped=s.id;save();renderShop();
+      };
+    }
+    card.append(preview,title,price,button);
+    list.appendChild(card);
+  });
+}
+function renderSettings(){
+  $("soundToggle").textContent=soundOn?"ON":"OFF";
+  $("effectsToggle").textContent=effectsOn?"ON":"OFF";
+}
+$("playBtn").onclick=startGame;
+$("shopBtn").onclick=()=>showScreen("shop");
+$("settingsBtn").onclick=()=>showScreen("settings");
+$("shopBack").onclick=()=>showScreen("menu");
+$("settingsBack").onclick=()=>showScreen("menu");
+$("soundToggle").onclick=()=>{soundOn=!soundOn;save();renderSettings()};
+$("effectsToggle").onclick=()=>{effectsOn=!effectsOn;save();renderSettings()};
+$("pause").onclick=()=>{ball=null;locked=false;showScreen("menu")};
+$("again").onclick=startGame;
 
 function draw(){
   const bg=ctx.createLinearGradient(0,0,0,H);
   bg.addColorStop(0,"#321080");
   bg.addColorStop(.6,"#6731b7");
   bg.addColorStop(1,"#08c9db");
+  ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);
 
-  ctx.fillStyle=bg;
-  ctx.fillRect(0,0,W,H);
-
-  // Arcade floor
   ctx.fillStyle="#341478";
-  ctx.beginPath();
-  ctx.moveTo(0,H*.70);
-  ctx.lineTo(W,H*.70);
-  ctx.lineTo(W,H);
-  ctx.lineTo(0,H);
-  ctx.fill();
+  ctx.fillRect(0,H*.7,W,H*.3);
 
-  // Decorative neon floor lines
   ctx.strokeStyle="rgba(97,250,255,.3)";
   ctx.lineWidth=2;
   for(let i=0;i<5;i++){
-    const x=W*i/4;
     ctx.beginPath();
-    ctx.moveTo(W/2,H*.70);
-    ctx.lineTo(x,H);
+    ctx.moveTo(W/2,H*.7);
+    ctx.lineTo(W*i/4,H);
     ctx.stroke();
   }
 
   const t=target();
-
-  // Glowing target
   ctx.save();
-  ctx.shadowBlur=25;
+  ctx.shadowBlur=effectsOn?25:0;
   ctx.shadowColor="#ffdf33";
   ctx.fillStyle="#ffdf33";
   ctx.beginPath();
@@ -293,65 +401,54 @@ function draw(){
   ctx.beginPath();
   ctx.ellipse(t.x,t.y,t.r*.7,t.r*.3,0,0,Math.PI*2);
   ctx.fill();
-
   ctx.fillStyle="#ff9ef5";
-  ctx.beginPath();
-  ctx.arc(t.x,t.y,5,0,Math.PI*2);
-  ctx.fill();
+  ctx.beginPath();ctx.arc(t.x,t.y,5,0,Math.PI*2);ctx.fill();
 
-  // Update ball
-  if(ball&&!ball.done){
+  if(mode==="playing"&&ball&&!ball.done){
     ball.x+=ball.vx;
     ball.y+=ball.vy;
     ball.vx+=wind;
     ball.vy+=.20;
 
-    // Check target crossing on descent
     if(ball.vy>0&&
        Math.abs(ball.y-t.y)<Math.max(7,ball.vy)&&
        Math.abs(ball.x-t.x)<t.r*.7){
-
-      const distance=Math.abs(ball.x-t.x);
-      const perfect=distance<t.r*.22;
-      finish(true,perfect);
+      finish(true,Math.abs(ball.x-t.x)<t.r*.22);
     }
 
-    // Reliable missed-shot detection
     if(!ball.done&&(
-      ball.y>H+50||
-      ball.x< -80||
+      ball.y>H+50||ball.x< -80||
       ball.x>W+80||
       performance.now()-shotStart>4500
-    )){
-      finish(false);
-    }
+    ))finish(false);
   }
 
-  const b=ball||(!over?{
+  const b=ball||(!over&&mode==="playing"?{
     x:W/2,y:H*.82,r:25
   }:null);
 
   if(b){
+    const skin=skins.find(s=>s.id===equipped)||skins[0];
     ctx.save();
-    ctx.fillStyle="#73faff";
-    ctx.shadowColor="#73faff";
-    ctx.shadowBlur=20;
+    ctx.shadowBlur=effectsOn?24:0;
+    ctx.shadowColor=skin.glow;
+    const gradient=ctx.createRadialGradient(
+      b.x-8,b.y-9,2,b.x,b.y,b.r
+    );
+    gradient.addColorStop(0,"#ffffff");
+    gradient.addColorStop(.4,skin.color);
+    gradient.addColorStop(1,skin.glow);
+    ctx.fillStyle=gradient;
     ctx.beginPath();
     ctx.arc(b.x,b.y,b.r,0,Math.PI*2);
     ctx.fill();
-
-    ctx.fillStyle="rgba(255,255,255,.6)";
-    ctx.beginPath();
-    ctx.arc(b.x-7,b.y-7,7,0,Math.PI*2);
-    ctx.fill();
     ctx.restore();
   }
-
   requestAnimationFrame(draw);
 }
 
-newWind();
 updateHUD();
+showScreen("menu");
 draw();
 </script>
 </body>
