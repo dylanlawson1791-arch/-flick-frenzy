@@ -5,13 +5,13 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="theme-color" content="#26105b">
-<title>Flick Frenzy V0.9</title>
+<title>Flick Frenzy V0.9.1</title>
 <style>
 *{box-sizing:border-box}
 html,body{margin:0;width:100%;height:100%;overflow:hidden}
-body{background:#210d54;color:white;font-family:Arial,sans-serif;touch-action:none;user-select:none;-webkit-user-select:none}
-#game{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none}
-.screen{position:absolute;inset:0;z-index:10;display:none;align-items:center;justify-content:center;padding:16px;background:linear-gradient(145deg,#210b60,#672bb5 60%,#08bcd1)}
+body{font-family:Arial,sans-serif;background:#210d54;color:white;touch-action:none;user-select:none;-webkit-user-select:none}
+canvas{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none}
+.screen{position:absolute;inset:0;z-index:5;display:none;align-items:center;justify-content:center;padding:16px;background:linear-gradient(145deg,#210b60,#672bb5 60%,#08bcd1)}
 .screen.active{display:flex}
 .panel{width:100%;max-width:430px;max-height:88dvh;overflow:auto;padding:22px 18px;background:rgba(24,9,75,.95);border:2px solid #9274ff;border-radius:24px;text-align:center}
 h1{font-size:42px;line-height:1;margin:10px 0;color:#ffe65c;text-shadow:0 4px #ed389b}
@@ -35,11 +35,12 @@ button:disabled{opacity:.5}
 .row{display:flex;justify-content:space-between;align-items:center;gap:10px;margin:18px 0}
 #hud{position:absolute;z-index:2;top:calc(env(safe-area-inset-top) + 12px);width:100%;padding:0 10px;display:none;grid-template-columns:repeat(3,1fr);gap:6px;pointer-events:none}
 .stat{background:#210d54cc;border:1px solid #ffffff40;border-radius:10px;padding:8px 3px;text-align:center;font-size:12px;font-weight:bold}
-#modeLabel,#challengeGoal,#message,#hint{position:absolute;z-index:2;width:100%;text-align:center;pointer-events:none;display:none;padding:0 15px}
+#modeLabel,#challengeGoal,#message,#hint,#power{position:absolute;z-index:2;width:100%;text-align:center;pointer-events:none;display:none;padding:0 15px}
 #modeLabel{top:calc(env(safe-area-inset-top) + 107px);font-size:13px;font-weight:bold;color:#ffe65c}
 #challengeGoal{top:calc(env(safe-area-inset-top) + 128px);font-size:12px}
 #message{top:24%;font-size:25px;font-weight:900;text-shadow:0 3px 12px #180738}
 #hint{bottom:11%;font-size:14px;color:#e5e3ff}
+#power{bottom:18%;font-size:15px;font-weight:bold;color:#ffe65c}
 #pause{position:absolute;z-index:3;right:12px;bottom:calc(env(safe-area-inset-bottom) + 12px);display:none;font-size:13px}
 #again{position:absolute;z-index:3;top:58%;left:50%;transform:translateX(-50%);display:none;white-space:nowrap}
 #loading{position:absolute;inset:0;z-index:20;background:#210d54;display:flex;align-items:center;justify-content:center;text-align:center;padding:25px}
@@ -47,13 +48,7 @@ button:disabled{opacity:.5}
 </head>
 <body>
 
-<div id="loading">
-<div>
-<h1>FLICK FRENZY</h1>
-<p>Loading the 3D arena...</p>
-</div>
-</div>
-
+<div id="loading"><div><h1>FLICK FRENZY</h1><p>Loading 3D arena...</p></div></div>
 <canvas id="game"></canvas>
 
 <div id="hud">
@@ -64,11 +59,11 @@ button:disabled{opacity:.5}
 <div class="stat" id="best">Best: 0</div>
 <div class="stat" id="wind">Wind: 0</div>
 </div>
-
 <div id="modeLabel"></div>
 <div id="challengeGoal"></div>
 <div id="message"></div>
 <div id="hint"></div>
+<div id="power"></div>
 <button id="pause" class="secondary">MENU</button>
 <button id="again">PLAY AGAIN</button>
 
@@ -82,7 +77,7 @@ button:disabled{opacity:.5}
 <button id="challengeBtn" class="menu-btn">🎯 CHALLENGE MODE</button>
 <button id="shopBtn" class="menu-btn secondary">🛒 BALL SHOP</button>
 <button id="settingsBtn" class="menu-btn secondary">⚙ SETTINGS</button>
-<p class="small">Version 0.9 · Real 3D Prototype</p>
+<p class="small">Version 0.9.1 · Basketball Arc</p>
 </div>
 </div>
 
@@ -109,19 +104,17 @@ button:disabled{opacity:.5}
 <h2>⚙ SETTINGS</h2>
 <div class="row"><strong>Sound effects</strong><button id="soundToggle"></button></div>
 <div class="row"><strong>Visual effects</strong><button id="effectsToggle"></button></div>
-<p class="small">Swipe up to throw the ball. Swipe length changes the arc, and sideways movement changes the aim.</p>
+<p class="small">Swipe up for a basketball-style arc. Swipe longer for more power. Move sideways to aim.</p>
 <button id="settingsBack" class="menu-btn secondary">← BACK</button>
 </div>
 </div>
 
 <script type="module">
-import * as THREE from
-"https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js";
-
-"use strict";
+import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js";
 
 const $=id=>document.getElementById(id);
 const canvas=$("game");
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 
 const skins=[
 {id:"classic",name:"Classic Neon",price:0,color:"#73faff",glow:"#00dfff"},
@@ -156,7 +149,7 @@ let score=0,misses=0,combo=0;
 let screen="menu",gameMode="endless",challengeId=null;
 let selectedTarget="bin",targetIndex=0;
 let challengeCount=0,challengeStreak=0,challengeStart=0;
-let wind=0,targetPhase=0,shot=null,start=null;
+let wind=0,targetPhase=0,shot=null,touchStart=null;
 let locked=false,over=false,session=0;
 let finishTimer=null,messageTimer=null,audioCtx=null;
 
@@ -187,17 +180,19 @@ localStorage.setItem("ff_effects",String(effectsOn));
 localStorage.setItem("ff_challenges_v07",JSON.stringify(completed));
 }catch(e){}
 }
-
 load();
 
-// THREE.JS SCENE
+// 3D SCENE
 const scene=new THREE.Scene();
 scene.background=new THREE.Color("#28105d");
-scene.fog=new THREE.Fog("#28105d",15,34);
+scene.fog=new THREE.Fog("#28105d",16,35);
 
 const camera=new THREE.PerspectiveCamera(57,1,.1,100);
-camera.position.set(0,3.5,10);
-camera.lookAt(0,1,-5.3);
+const homeCamera=new THREE.Vector3(0,3.5,10);
+const homeLook=new THREE.Vector3(0,1,-5.3);
+const cameraLook=homeLook.clone();
+camera.position.copy(homeCamera);
+camera.lookAt(cameraLook);
 
 const renderer=new THREE.WebGLRenderer({
 canvas,antialias:true,alpha:false
@@ -206,9 +201,8 @@ renderer.setPixelRatio(Math.min(devicePixelRatio,2));
 renderer.outputColorSpace=THREE.SRGBColorSpace;
 
 function resize(){
-const w=innerWidth,h=innerHeight;
-renderer.setSize(w,h,false);
-camera.aspect=w/h;
+renderer.setSize(innerWidth,innerHeight,false);
+camera.aspect=innerWidth/innerHeight;
 camera.updateProjectionMatrix();
 }
 addEventListener("resize",resize);
@@ -229,25 +223,23 @@ return new THREE.MeshStandardMaterial({color,metalness,roughness});
 }
 
 function box(w,h,d,material,x,y,z,parent=scene){
-const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),material);
-m.position.set(x,y,z);
-parent.add(m);
-return m;
+const mesh=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),material);
+mesh.position.set(x,y,z);
+parent.add(mesh);
+return mesh;
 }
 
 function cylinder(top,bottom,height,material,x,y,z,parent=scene){
-const m=new THREE.Mesh(
-new THREE.CylinderGeometry(top,bottom,height,40),
-material
+const mesh=new THREE.Mesh(
+new THREE.CylinderGeometry(top,bottom,height,40),material
 );
-m.position.set(x,y,z);
-parent.add(m);
-return m;
+mesh.position.set(x,y,z);
+parent.add(mesh);
+return mesh;
 }
 
 const floor=new THREE.Mesh(
-new THREE.PlaneGeometry(100,100),
-mat("#27135e",.1,.65)
+new THREE.PlaneGeometry(100,100),mat("#27135e",.1,.65)
 );
 floor.rotation.x=-Math.PI/2;
 floor.position.y=-.025;
@@ -257,25 +249,26 @@ const grid=new THREE.GridHelper(60,50,"#00eaff","#6436ac");
 grid.position.y=.015;
 scene.add(grid);
 
-const backWall=box(24,12,.3,mat("#482183"),0,6,-15);
-
-const wallLeft=box(.3,12,30,mat("#341777"),-9,6,-2);
-const wallRight=box(.3,12,30,mat("#341777"),9,6,-2);
+box(24,12,.3,mat("#482183"),0,6,-15);
+box(.3,12,30,mat("#341777"),-9,6,-2);
+box(.3,12,30,mat("#341777"),9,6,-2);
 
 const neon=mat("#00eaff",.2,.2);
 const magenta=mat("#ff54cc",.2,.25);
-
 box(18,.09,.09,neon,0,.08,-14.7);
 box(.09,7,.09,magenta,-8.8,3.5,-14.7);
 box(.09,7,.09,magenta,8.8,3.5,-14.7);
 
-// TARGET OBJECTS
 const targetGroup=new THREE.Group();
 targetGroup.position.set(0,0,-8);
 scene.add(targetGroup);
 
-const solidParts=[];
-let netObject=null;
+function targetMesh(geometry,material,x,y,z){
+const mesh=new THREE.Mesh(geometry,material);
+mesh.position.set(x,y,z);
+targetGroup.add(mesh);
+return mesh;
+}
 
 function clearTarget(){
 while(targetGroup.children.length){
@@ -290,22 +283,13 @@ materials.forEach(m=>m.dispose());
 }
 });
 }
-solidParts.length=0;
-netObject=null;
-}
-
-function targetMesh(geometry,material,x,y,z){
-const m=new THREE.Mesh(geometry,material);
-m.position.set(x,y,z);
-targetGroup.add(m);
-return m;
 }
 
 function createBin(){
 const blue=mat("#16b6d6",.35,.3);
 const dark=mat("#0b244b",.15,.6);
 
-const wall=targetMesh(
+targetMesh(
 new THREE.CylinderGeometry(.85,.7,1.35,48,1,true),
 new THREE.MeshStandardMaterial({
 color:"#20b8d5",metalness:.35,roughness:.35,
@@ -313,10 +297,7 @@ side:THREE.DoubleSide
 }),0,.675,0
 );
 
-targetMesh(
-new THREE.CylinderGeometry(.71,.71,.09,48),
-dark,0,.045,0
-);
+targetMesh(new THREE.CylinderGeometry(.71,.71,.09,48),dark,0,.045,0);
 
 const rim=targetMesh(
 new THREE.TorusGeometry(.85,.09,12,48),
@@ -330,8 +311,6 @@ const stripe=box(.055,1.05,.055,blue,
 Math.cos(a)*.77,.65,Math.sin(a)*.77,targetGroup);
 stripe.rotation.y=-a;
 }
-
-solidParts.push({kind:"container",radius:.85,rim:1.35,bottom:0});
 }
 
 function createBucket(){
@@ -345,18 +324,13 @@ color:"#ffad30",side:THREE.DoubleSide
 }),0,.575,0
 );
 
-targetMesh(
-new THREE.CylinderGeometry(.84,.84,.08,48),
-dark,0,.04,0
-);
+targetMesh(new THREE.CylinderGeometry(.84,.84,.08,48),dark,0,.04,0);
 
 const rim=targetMesh(
 new THREE.TorusGeometry(1.1,.095,12,48),
 orange,0,1.15,0
 );
 rim.rotation.x=Math.PI/2;
-
-solidParts.push({kind:"container",radius:1.1,rim:1.15,bottom:0});
 }
 
 function createHoop(){
@@ -391,30 +365,24 @@ const pts=[
 new THREE.Vector3(Math.cos(a)*.7,2.56,Math.sin(a)*.7),
 new THREE.Vector3(Math.cos(b)*.48,1.98,Math.sin(b)*.48)
 ];
-const geo=new THREE.BufferGeometry().setFromPoints(pts);
-targetGroup.add(new THREE.Line(geo,netMaterial));
+targetGroup.add(new THREE.Line(
+new THREE.BufferGeometry().setFromPoints(pts),
+netMaterial
+));
 }
-
-solidParts.push({kind:"hoop",radius:.72,rim:2.6});
 }
 
 function createRing(){
 const pink=new THREE.MeshStandardMaterial({
-color:"#ff50d7",
-emissive:"#d8209e",
-emissiveIntensity:1.5,
-metalness:.2,
-roughness:.25
+color:"#ff50d7",emissive:"#d8209e",
+emissiveIntensity:1.5,metalness:.2,roughness:.25
 });
-
 const ring=targetMesh(
 new THREE.TorusGeometry(.8,.12,16,64),
 pink,0,1.8,0
 );
 ring.rotation.x=Math.PI/2;
-
 box(.13,1.8,.13,mat("#5266a3"),0,.9,0,targetGroup);
-solidParts.push({kind:"ring",radius:.8,rim:1.8});
 }
 
 function rebuildTarget(){
@@ -428,13 +396,9 @@ updateLabel();
 
 const ballGeometry=new THREE.SphereGeometry(.23,32,24);
 const ballMaterial=new THREE.MeshStandardMaterial({
-color:"#73faff",
-emissive:"#00aacc",
-emissiveIntensity:.85,
-metalness:.15,
-roughness:.2
+color:"#73faff",emissive:"#00aacc",
+emissiveIntensity:.85,metalness:.15,roughness:.2
 });
-
 const ballMesh=new THREE.Mesh(ballGeometry,ballMaterial);
 scene.add(ballMesh);
 
@@ -451,11 +415,22 @@ shadow.rotation.x=-Math.PI/2;
 shadow.position.y=.025;
 scene.add(shadow);
 
+// Trail shows the shape of the basketball arc.
+const trailPoints=[];
+const trailMaterial=new THREE.LineBasicMaterial({
+color:"#75efff",transparent:true,opacity:.55
+});
+const trailGeometry=new THREE.BufferGeometry();
+const trail=new THREE.Line(trailGeometry,trailMaterial);
+scene.add(trail);
+trail.visible=false;
+
 function updateSkin(){
 const s=skins.find(x=>x.id===equipped)||skins[0];
 ballMaterial.color.set(s.color);
 ballMaterial.emissive.set(s.glow);
 ballLight.color.set(s.glow);
+trailMaterial.color.set(s.color);
 }
 
 function resetBall(){
@@ -466,6 +441,11 @@ ballMesh.rotation.set(0,0,0);
 ballLight.position.copy(ballMesh.position);
 shadow.visible=true;
 shadow.position.set(0,.025,4);
+trailPoints.length=0;
+trail.visible=false;
+camera.position.copy(homeCamera);
+cameraLook.copy(homeLook);
+camera.lookAt(cameraLook);
 updateSkin();
 }
 
@@ -481,13 +461,16 @@ function showScreen(id){
 screen=id;
 document.querySelectorAll(".screen").forEach(el=>el.classList.remove("active"));
 if(id!=="playing")$(id).classList.add("active");
+
 $("hud").style.display=id==="playing"?"grid":"none";
 $("modeLabel").style.display=id==="playing"?"block":"none";
 $("challengeGoal").style.display=id==="playing"&&gameMode==="challenge"?"block":"none";
 $("message").style.display=id==="playing"?"block":"none";
 $("hint").style.display=id==="playing"?"block":"none";
+$("power").style.display=id==="playing"?"block":"none";
 $("pause").style.display=id==="playing"&&!over?"block":"none";
 $("again").style.display=id==="playing"&&over?"block":"none";
+
 if(id==="menu")$("menuStats").textContent="🏆 Best: "+best+"   🪙 Coins: "+coins;
 if(id==="shop")renderShop();
 if(id==="challenges")renderChallenges();
@@ -526,19 +509,19 @@ const c=activeChallenge();
 if(!c||gameMode!=="challenge")return;
 const remaining=c.limit?
 Math.max(0,Math.ceil(c.limit-(performance.now()-challengeStart)/1000)):null;
-$("challengeGoal").textContent=
-c.desc+" · "+challengeCount+"/"+c.need+
+$("challengeGoal").textContent=c.desc+" · "+challengeCount+"/"+c.need+
 (remaining===null?"":" · ⏱ "+remaining+"s");
 }
 
 function newWind(){
-wind=(Math.random()-.5)*.3;
+wind=(Math.random()-.5)*.18;
 }
 
 function startGame(mode,id=null){
 session++;
 clearTimeout(finishTimer);
 clearTimeout(messageTimer);
+
 gameMode=mode;
 challengeId=mode==="challenge"?id:null;
 selectedTarget=mode==="endless"?"bin":(activeChallenge()?.target||"bin");
@@ -547,16 +530,18 @@ targetPhase=0;
 score=0;misses=0;combo=0;
 challengeCount=0;challengeStreak=0;
 challengeStart=performance.now();
-locked=false;over=false;start=null;
+locked=false;over=false;touchStart=null;
 newWind();
 rebuildTarget();
 resetBall();
-$("hint").textContent="Swipe UP to throw · Swipe sideways to aim";
+
+$("hint").textContent="Swipe UP to shoot · Longer swipe = more power";
+$("power").textContent="";
 $("again").textContent="PLAY AGAIN";
 updateHUD();
 updateGoal();
 showScreen("playing");
-message("READY TO FLICK!",1000);
+message("READY TO SHOOT!",1000);
 }
 
 function beep(freq){
@@ -577,6 +562,7 @@ function completeChallenge(){
 const c=activeChallenge();
 if(!c)return;
 const fresh=!completed.includes(c.id);
+
 if(fresh){
 completed.push(c.id);
 coins+=c.reward;
@@ -623,8 +609,8 @@ else if(c.goal==="hits"||perfect)challengeCount++;
 updateGoal();
 }
 
-message(perfect?"PERFECT! +"+points:"SCORE! +"+points);
-beep(720);
+message(perfect?"PERFECT! +"+points:"SWISH! +"+points);
+beep(780);
 save();
 }else{
 misses++;
@@ -637,7 +623,6 @@ updateGoal();
 message("MISSED!");
 beep(220);
 }
-
 updateHUD();
 
 if(gameMode==="challenge"&&hit&&challengeCount>=activeChallenge().need){
@@ -660,70 +645,93 @@ return;
 }
 
 locked=false;
+
 if(hit&&gameMode==="endless"){
 targetIndex=(targetIndex+1)%targets.length;
 selectedTarget=targets[targetIndex].id;
 rebuildTarget();
 message("NEXT: "+activeTarget().name.toUpperCase(),1000);
 }else{
-message("FLICK AGAIN!",700);
+message("SHOOT AGAIN!",700);
 }
+
 newWind();
 resetBall();
 updateHUD();
-},850);
+},900);
 }
 
-// TOUCH CONTROLS
-canvas.addEventListener("pointerdown",e=>{
-if(screen!=="playing"||over||locked||shot)return;
-start={x:e.clientX,y:e.clientY};
-try{canvas.setPointerCapture(e.pointerId)}catch(err){}
-});
+// BASKETBALL THROWING SYSTEM
+const GRAVITY=9.8;
+const BALL_RADIUS=.23;
+const RELEASE=new THREE.Vector3(0,1.25,4);
 
-canvas.addEventListener("pointerup",e=>{
-if(!start||screen!=="playing"||over||locked||shot)return;
+function launchBall(dx,dy){
+const swipe=clamp(-dy/innerHeight,.04,.65);
+const sideways=clamp(dx/(innerWidth*.3),-1,1);
 
-const dx=e.clientX-start.x;
-const dy=e.clientY-start.y;
-start=null;
-if(dy>=-20)return;
+// Middle swipe gives a useful shot; short and long swipes
+// fall short or travel beyond the target.
+const power=clamp((swipe-.06)/.36,0,1);
+const flightTime=1.52+power*.42;
+const distanceFactor=.68+power*.64;
+const target=activeTarget();
 
-const strength=Math.max(.08,Math.min(.55,-dy/innerHeight));
-const sideways=Math.max(-1,Math.min(1,dx/(innerWidth*.28)));
+// The vertical velocity is calculated so a medium-power
+// shot reaches the target height on its descending arc.
+const desiredHeight=target.rim+.25;
+const verticalSpeed=
+(desiredHeight-RELEASE.y+.5*GRAVITY*flightTime*flightTime)/flightTime;
 
-let vy=3.3+strength*4.5;
-let vz=-(10.5+strength*12);
-
-// Hoops need a higher throw.
-if(selectedTarget==="hoop")vy+=1.25;
-if(selectedTarget==="ring")vy+=.5;
+// Forward travel is independent of vertical travel,
+// producing a genuine parabolic flight.
+const forwardSpeed=12*distanceFactor/flightTime;
+const horizontalSpeed=sideways*2.6;
 
 shot={
-velocity:new THREE.Vector3(sideways*3.6,vy,vz),
+velocity:new THREE.Vector3(
+horizontalSpeed,verticalSpeed,-forwardSpeed
+),
 age:0,
 done:false,
 scored:false,
 rimCooldown:0,
 contacts:0,
-wasInside:false
+power,
+groundTime:0
 };
 
+ballMesh.position.copy(RELEASE);
+trailPoints.length=0;
+trail.visible=effectsOn;
+$("power").textContent="SHOT POWER: "+Math.round(power*100)+"%";
 message("");
 beep(480);
+}
+
+canvas.addEventListener("pointerdown",e=>{
+if(screen!=="playing"||over||locked||shot)return;
+touchStart={x:e.clientX,y:e.clientY};
+try{canvas.setPointerCapture(e.pointerId)}catch(err){}
 });
 
-canvas.addEventListener("pointercancel",()=>start=null);
+canvas.addEventListener("pointerup",e=>{
+if(!touchStart||screen!=="playing"||over||locked||shot)return;
+const dx=e.clientX-touchStart.x;
+const dy=e.clientY-touchStart.y;
+touchStart=null;
+if(dy>=-20)return;
+launchBall(dx,dy);
+});
 
-// THREE-DIMENSIONAL COLLISION PHYSICS
-const BALL_RADIUS=.23;
-const GRAVITY=9.8;
+canvas.addEventListener("pointercancel",()=>touchStart=null);
 
+// COLLISIONS
 function reflect(normal,bounce=.62){
-const v=shot.velocity;
-const approach=v.dot(normal);
+if(!shot)return;
+const approach=shot.velocity.dot(normal);
 if(approach<0){
-v.addScaledVector(normal,-(1+bounce)*approach);
+shot.velocity.addScaledVector(normal,-(1+bounce)*approach);
 }
 }
 
@@ -733,65 +741,57 @@ const p=ballMesh.position;
 const cx=targetGroup.position.x;
 const cz=targetGroup.position.z;
 
-const dx=p.x-cx;
-const dz=p.z-cz;
+const dx=p.x-cx,dz=p.z-cz;
 const horizontal=Math.hypot(dx,dz);
-const inner=t.radius-BALL_RADIUS*.6;
+const oldHorizontal=Math.hypot(previous.x-cx,previous.z-cz);
 
-const oldDX=previous.x-cx;
-const oldDZ=previous.z-cz;
-const oldHorizontal=Math.hypot(oldDX,oldDZ);
-
-// Scoring requires the entire ball to cross the
-// actual opening from above while descending.
-const crossedOpening=
-previous.y-BALL_RADIUS>=t.rim&&
-p.y-BALL_RADIUS<t.rim&&
+// Only score when the ball descends through the opening.
+// A ball passing beside the target cannot score.
+const crossing=
+previous.y>=t.rim&&
+p.y<t.rim&&
 shot.velocity.y<0;
 
-if(crossedOpening&&
-horizontal<inner&&
-oldHorizontal<inner+.12){
+if(crossing){
+const fraction=clamp(
+(previous.y-t.rim)/(previous.y-p.y),0,1
+);
+const crossX=previous.x+(p.x-previous.x)*fraction;
+const crossZ=previous.z+(p.z-previous.z)*fraction;
+const distance=Math.hypot(crossX-cx,crossZ-cz);
+const clearance=t.radius-BALL_RADIUS-.06;
 
+if(distance<clearance){
+const perfect=distance<t.radius*.3;
 shot.scored=true;
-shot.wasInside=true;
-
-const perfect=horizontal<t.radius*.32;
-
 finish(true,perfect);
 return;
 }
+}
 
-// Bounce off the physical rim.
-const rimDistance=Math.hypot(
-horizontal-t.radius,
-p.y-t.rim
+// Rim collision with an actual circular edge.
+const ringDistance=Math.hypot(horizontal-t.radius,p.y-t.rim);
+if(ringDistance<BALL_RADIUS+.085&&shot.rimCooldown<=0){
+const radial=new THREE.Vector3(
+dx/(horizontal||1),0,dz/(horizontal||1)
 );
-
-if(rimDistance<BALL_RADIUS+.075&&
-shot.rimCooldown<=0){
-
-let nx=dx/(horizontal||1);
-let nz=dz/(horizontal||1);
-let ny=(p.y-t.rim);
-
 const normal=new THREE.Vector3(
-nx*(horizontal-t.radius),
-ny,
-nz*(horizontal-t.radius)
+radial.x*(horizontal-t.radius),
+p.y-t.rim,
+radial.z*(horizontal-t.radius)
 ).normalize();
 
 if(normal.lengthSq()<.01)normal.set(0,1,0);
 
-reflect(normal,.64);
-p.addScaledVector(normal,.04);
-shot.rimCooldown=.12;
+reflect(normal,.65);
+p.addScaledVector(normal,.035);
+shot.rimCooldown=.13;
 shot.contacts++;
-message("RIM BOUNCE!",400);
-beep(350);
+message("RIM BOUNCE!",350);
+beep(360);
 }
 
-// Container walls: collision with a hollow cylinder.
+// Hollow container walls.
 if(t.id==="bin"||t.id==="bucket"){
 if(p.y>0&&p.y<t.rim&&
 horizontal>t.radius-BALL_RADIUS&&
@@ -801,15 +801,13 @@ const normal=new THREE.Vector3(
 dx/(horizontal||1),0,dz/(horizontal||1)
 );
 
-const comingFromInside=oldHorizontal<t.radius;
-
-if(comingFromInside){
+if(oldHorizontal<t.radius){
 normal.multiplyScalar(-1);
-p.x=cx+dx/horizontal*(t.radius-BALL_RADIUS);
-p.z=cz+dz/horizontal*(t.radius-BALL_RADIUS);
+p.x=cx+normal.x*(-t.radius+BALL_RADIUS);
+p.z=cz+normal.z*(-t.radius+BALL_RADIUS);
 }else{
-p.x=cx+dx/horizontal*(t.radius+BALL_RADIUS);
-p.z=cz+dz/horizontal*(t.radius+BALL_RADIUS);
+p.x=cx+normal.x*(t.radius+BALL_RADIUS);
+p.z=cz+normal.z*(t.radius+BALL_RADIUS);
 }
 
 reflect(normal,.55);
@@ -818,7 +816,7 @@ beep(280);
 }
 }
 
-// Basketball backboard collision.
+// Basketball backboard.
 if(t.id==="hoop"){
 const boardZ=cz-.9;
 const hitBoard=
@@ -831,7 +829,7 @@ if(hitBoard){
 p.z=boardZ+BALL_RADIUS;
 reflect(new THREE.Vector3(0,0,1),.65);
 shot.contacts++;
-message("BACKBOARD!",500);
+message("BACKBOARD!",450);
 beep(400);
 }
 }
@@ -844,53 +842,52 @@ const steps=Math.max(1,Math.ceil(dt/(1/120)));
 const step=dt/steps;
 
 for(let i=0;i<steps;i++){
-if(shot.done)return;
+if(!shot||shot.done)return;
 
 const previous=ballMesh.position.clone();
 shot.age+=step;
 shot.rimCooldown=Math.max(0,shot.rimCooldown-step);
 
+// Gravity continuously reduces the upward speed,
+// then accelerates the ball downwards.
 shot.velocity.y-=GRAVITY*step;
 shot.velocity.x+=wind*.07*step;
 
 ballMesh.position.addScaledVector(shot.velocity,step);
 
-ballMesh.rotation.x+=shot.velocity.z*step*.5;
-ballMesh.rotation.z-=shot.velocity.x*step*.5;
+ballMesh.rotation.x+=shot.velocity.z*step*.45;
+ballMesh.rotation.z-=shot.velocity.x*step*.45;
 
 handleTargetCollision(previous);
+if(!shot||shot.done)return;
 
-if(shot.done)return;
-
-// Floor collision.
+// Floor bounces.
 if(ballMesh.position.y<BALL_RADIUS){
 ballMesh.position.y=BALL_RADIUS;
 
 if(shot.velocity.y<0){
-shot.velocity.y=-shot.velocity.y*.55;
-shot.velocity.x*=.85;
-shot.velocity.z*=.85;
+shot.velocity.y=-shot.velocity.y*.52;
+shot.velocity.x*=.82;
+shot.velocity.z*=.82;
 shot.contacts++;
 beep(190);
 }
+shot.groundTime+=step;
 }
 
-// Arena side walls.
+// Arena walls.
 if(Math.abs(ballMesh.position.x)>8.5){
-ballMesh.position.x=
-Math.sign(ballMesh.position.x)*8.5;
+ballMesh.position.x=Math.sign(ballMesh.position.x)*8.5;
 shot.velocity.x*=-.6;
 }
-
 if(ballMesh.position.z< -14.4){
 ballMesh.position.z=-14.4;
 shot.velocity.z*=-.6;
 }
 
-if(shot.age>4.5||
-(shot.age>1.5&&
-ballMesh.position.y<=BALL_RADIUS+.01&&
-shot.velocity.length()<1.5)){
+// Wait until the flight finishes before declaring a miss.
+if(shot.age>5||
+(shot.age>1.5&&shot.groundTime>.55)){
 finish(false);
 return;
 }
@@ -901,14 +898,45 @@ shadow.position.x=ballMesh.position.x;
 shadow.position.z=ballMesh.position.z;
 shadow.material.opacity=
 Math.max(.05,.28-ballMesh.position.y*.03);
+
+// Fading trajectory trail.
+if(effectsOn&&shot&&!shot.done){
+trailPoints.push(ballMesh.position.clone());
+if(trailPoints.length>32)trailPoints.shift();
+trailGeometry.setFromPoints(trailPoints);
+trail.visible=trailPoints.length>1;
+}
+}
+
+// CAMERA TRACKING
+function updateCamera(dt){
+const desired=homeCamera.clone();
+const look=homeLook.clone();
+
+if(screen==="playing"&&shot&&!shot.done){
+const p=ballMesh.position;
+
+// Gentle movement only; target remains in view.
+desired.x=clamp(p.x*.12,-.45,.45);
+desired.y=homeCamera.y+clamp((p.y-1.25)*.11,0,.7);
+desired.z=homeCamera.z-clamp((4-p.z)*.055,0,.65);
+
+look.x=clamp(p.x*.1,-.35,.35);
+look.y=homeLook.y+clamp((p.y-1.25)*.12,0,.65);
+}
+
+const smoothing=1-Math.exp(-dt*3.2);
+camera.position.lerp(desired,smoothing);
+cameraLook.lerp(look,smoothing);
+camera.lookAt(cameraLook);
 }
 
 function update(dt){
 if(screen!=="playing")return;
 
 targetPhase+=dt;
-
 const c=activeChallenge();
+
 const moving=gameMode==="challenge"?
 !!c?.moving:targetIndex>=3;
 
@@ -924,13 +952,13 @@ return;
 }
 
 if(!over)updatePhysics(dt);
+updateCamera(dt);
 }
 
 // CHALLENGE MENU
 function renderChallenges(){
 const list=$("challengeList");
 list.innerHTML="";
-
 $("challengeProgress").textContent=
 "Completed "+challenges.filter(c=>completed.includes(c.id)).length+
 " / "+challenges.length+" · One-time rewards";
@@ -1051,6 +1079,7 @@ renderSettings();
 
 $("effectsToggle").onclick=()=>{
 effectsOn=!effectsOn;
+trail.visible=effectsOn&&trailPoints.length>1;
 save();
 renderSettings();
 };
@@ -1088,7 +1117,6 @@ updateHUD();
 showScreen("menu");
 $("loading").style.display="none";
 frame();
-
 </script>
 </body>
 </html>
