@@ -5,7 +5,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="theme-color" content="#26105b">
-<title>Flick Frenzy V0.9.1</title>
+<title>Flick Frenzy V0.9.2</title>
 <style>
 *{box-sizing:border-box}
 html,body{margin:0;width:100%;height:100%;overflow:hidden}
@@ -13,7 +13,7 @@ body{font-family:Arial,sans-serif;background:#210d54;color:white;touch-action:no
 canvas{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none}
 .screen{position:absolute;inset:0;z-index:5;display:none;align-items:center;justify-content:center;padding:16px;background:linear-gradient(145deg,#210b60,#672bb5 60%,#08bcd1)}
 .screen.active{display:flex}
-.panel{width:100%;max-width:430px;max-height:88dvh;overflow:auto;padding:22px 18px;background:rgba(24,9,75,.95);border:2px solid #9274ff;border-radius:24px;text-align:center}
+.panel{width:100%;max-width:430px;max-height:88dvh;overflow:auto;touch-action:pan-y;padding:22px 18px;background:rgba(24,9,75,.95);border:2px solid #9274ff;border-radius:24px;text-align:center}
 h1{font-size:42px;line-height:1;margin:10px 0;color:#ffe65c;text-shadow:0 4px #ed389b}
 h2{color:#ffe65c}
 h3{margin:10px 0}
@@ -40,7 +40,7 @@ button:disabled{opacity:.5}
 #challengeGoal{top:calc(env(safe-area-inset-top) + 128px);font-size:12px}
 #message{top:24%;font-size:25px;font-weight:900;text-shadow:0 3px 12px #180738}
 #hint{bottom:11%;font-size:14px;color:#e5e3ff}
-#power{bottom:18%;font-size:15px;font-weight:bold;color:#ffe65c}
+#power{bottom:18%;font-size:15px;font-weight:bold;color:#ffe65c;opacity:0;transition:opacity .25s}
 #pause{position:absolute;z-index:3;right:12px;bottom:calc(env(safe-area-inset-bottom) + 12px);display:none;font-size:13px}
 #again{position:absolute;z-index:3;top:58%;left:50%;transform:translateX(-50%);display:none;white-space:nowrap}
 #loading{position:absolute;inset:0;z-index:20;background:#210d54;display:flex;align-items:center;justify-content:center;text-align:center;padding:25px}
@@ -48,7 +48,10 @@ button:disabled{opacity:.5}
 </head>
 <body>
 
-<div id="loading"><div><h1>FLICK FRENZY</h1><p>Loading 3D arena...</p></div></div>
+<div id="loading">
+<div><h1>FLICK FRENZY</h1><p>Loading 3D arena...</p></div>
+</div>
+
 <canvas id="game"></canvas>
 
 <div id="hud">
@@ -59,11 +62,13 @@ button:disabled{opacity:.5}
 <div class="stat" id="best">Best: 0</div>
 <div class="stat" id="wind">Wind: 0</div>
 </div>
+
 <div id="modeLabel"></div>
 <div id="challengeGoal"></div>
 <div id="message"></div>
 <div id="hint"></div>
 <div id="power"></div>
+
 <button id="pause" class="secondary">MENU</button>
 <button id="again">PLAY AGAIN</button>
 
@@ -77,7 +82,7 @@ button:disabled{opacity:.5}
 <button id="challengeBtn" class="menu-btn">🎯 CHALLENGE MODE</button>
 <button id="shopBtn" class="menu-btn secondary">🛒 BALL SHOP</button>
 <button id="settingsBtn" class="menu-btn secondary">⚙ SETTINGS</button>
-<p class="small">Version 0.9.1 · Basketball Arc</p>
+<p class="small">Version 0.9.2 · Refined Throw Control</p>
 </div>
 </div>
 
@@ -104,7 +109,7 @@ button:disabled{opacity:.5}
 <h2>⚙ SETTINGS</h2>
 <div class="row"><strong>Sound effects</strong><button id="soundToggle"></button></div>
 <div class="row"><strong>Visual effects</strong><button id="effectsToggle"></button></div>
-<p class="small">Swipe up for a basketball-style arc. Swipe longer for more power. Move sideways to aim.</p>
+<p class="small">Swipe upwards to throw. Longer swipes give more power. The power percentage appears only after the shot.</p>
 <button id="settingsBack" class="menu-btn secondary">← BACK</button>
 </div>
 </div>
@@ -151,7 +156,7 @@ let selectedTarget="bin",targetIndex=0;
 let challengeCount=0,challengeStreak=0,challengeStart=0;
 let wind=0,targetPhase=0,shot=null,touchStart=null;
 let locked=false,over=false,session=0;
-let finishTimer=null,messageTimer=null,audioCtx=null;
+let finishTimer=null,messageTimer=null,powerTimer=null,audioCtx=null;
 
 function load(){
 try{
@@ -182,7 +187,7 @@ localStorage.setItem("ff_challenges_v07",JSON.stringify(completed));
 }
 load();
 
-// 3D SCENE
+// 3D ARENA
 const scene=new THREE.Scene();
 scene.background=new THREE.Color("#28105d");
 scene.fog=new THREE.Fog("#28105d",16,35);
@@ -224,15 +229,6 @@ return new THREE.MeshStandardMaterial({color,metalness,roughness});
 
 function box(w,h,d,material,x,y,z,parent=scene){
 const mesh=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),material);
-mesh.position.set(x,y,z);
-parent.add(mesh);
-return mesh;
-}
-
-function cylinder(top,bottom,height,material,x,y,z,parent=scene){
-const mesh=new THREE.Mesh(
-new THREE.CylinderGeometry(top,bottom,height,40),material
-);
 mesh.position.set(x,y,z);
 parent.add(mesh);
 return mesh;
@@ -415,7 +411,6 @@ shadow.rotation.x=-Math.PI/2;
 shadow.position.y=.025;
 scene.add(shadow);
 
-// Trail shows the shape of the basketball arc.
 const trailPoints=[];
 const trailMaterial=new THREE.LineBasicMaterial({
 color:"#75efff",transparent:true,opacity:.55
@@ -431,6 +426,23 @@ ballMaterial.color.set(s.color);
 ballMaterial.emissive.set(s.glow);
 ballLight.color.set(s.glow);
 trailMaterial.color.set(s.color);
+}
+
+function hidePower(){
+clearTimeout(powerTimer);
+$("power").style.opacity="0";
+}
+
+function showShotPower(power){
+clearTimeout(powerTimer);
+const el=$("power");
+el.textContent="SHOT POWER: "+Math.round(power*100)+"%";
+el.style.opacity="1";
+
+const s=session;
+powerTimer=setTimeout(()=>{
+if(s===session)el.style.opacity="0";
+},1400);
 }
 
 function resetBall(){
@@ -521,6 +533,7 @@ function startGame(mode,id=null){
 session++;
 clearTimeout(finishTimer);
 clearTimeout(messageTimer);
+hidePower();
 
 gameMode=mode;
 challengeId=mode==="challenge"?id:null;
@@ -536,7 +549,6 @@ rebuildTarget();
 resetBall();
 
 $("hint").textContent="Swipe UP to shoot · Longer swipe = more power";
-$("power").textContent="";
 $("again").textContent="PLAY AGAIN";
 updateHUD();
 updateGoal();
@@ -661,30 +673,36 @@ updateHUD();
 },900);
 }
 
-// BASKETBALL THROWING SYSTEM
+// THROW CONTROLS V0.9.2
 const GRAVITY=9.8;
 const BALL_RADIUS=.23;
 const RELEASE=new THREE.Vector3(0,1.25,4);
 
+// This curve keeps small swipe differences around the
+// middle from producing large jumps in shot power.
+function swipeToPower(swipeDistance){
+const normalized=clamp(
+(swipeDistance/innerHeight-.06)/.36,0,1
+);
+
+// Smoothstep creates a gentler response around 50%.
+return normalized*normalized*(3-2*normalized);
+}
+
 function launchBall(dx,dy){
-const swipe=clamp(-dy/innerHeight,.04,.65);
+const swipeDistance=Math.max(0,-dy);
+const power=swipeToPower(swipeDistance);
 const sideways=clamp(dx/(innerWidth*.3),-1,1);
 
-// Middle swipe gives a useful shot; short and long swipes
-// fall short or travel beyond the target.
-const power=clamp((swipe-.06)/.36,0,1);
 const flightTime=1.52+power*.42;
 const distanceFactor=.68+power*.64;
 const target=activeTarget();
 
-// The vertical velocity is calculated so a medium-power
-// shot reaches the target height on its descending arc.
 const desiredHeight=target.rim+.25;
 const verticalSpeed=
-(desiredHeight-RELEASE.y+.5*GRAVITY*flightTime*flightTime)/flightTime;
+(desiredHeight-RELEASE.y+
+.5*GRAVITY*flightTime*flightTime)/flightTime;
 
-// Forward travel is independent of vertical travel,
-// producing a genuine parabolic flight.
 const forwardSpeed=12*distanceFactor/flightTime;
 const horizontalSpeed=sideways*2.6;
 
@@ -704,7 +722,10 @@ groundTime:0
 ballMesh.position.copy(RELEASE);
 trailPoints.length=0;
 trail.visible=effectsOn;
-$("power").textContent="SHOT POWER: "+Math.round(power*100)+"%";
+
+// The percentage appears AFTER release only.
+showShotPower(power);
+
 message("");
 beep(480);
 }
@@ -717,16 +738,18 @@ try{canvas.setPointerCapture(e.pointerId)}catch(err){}
 
 canvas.addEventListener("pointerup",e=>{
 if(!touchStart||screen!=="playing"||over||locked||shot)return;
+
 const dx=e.clientX-touchStart.x;
 const dy=e.clientY-touchStart.y;
 touchStart=null;
+
 if(dy>=-20)return;
 launchBall(dx,dy);
 });
 
 canvas.addEventListener("pointercancel",()=>touchStart=null);
 
-// COLLISIONS
+// BALL AND TARGET COLLISIONS
 function reflect(normal,bounce=.62){
 if(!shot)return;
 const approach=shot.velocity.dot(normal);
@@ -745,8 +768,6 @@ const dx=p.x-cx,dz=p.z-cz;
 const horizontal=Math.hypot(dx,dz);
 const oldHorizontal=Math.hypot(previous.x-cx,previous.z-cz);
 
-// Only score when the ball descends through the opening.
-// A ball passing beside the target cannot score.
 const crossing=
 previous.y>=t.rim&&
 p.y<t.rim&&
@@ -769,12 +790,13 @@ return;
 }
 }
 
-// Rim collision with an actual circular edge.
 const ringDistance=Math.hypot(horizontal-t.radius,p.y-t.rim);
+
 if(ringDistance<BALL_RADIUS+.085&&shot.rimCooldown<=0){
 const radial=new THREE.Vector3(
 dx/(horizontal||1),0,dz/(horizontal||1)
 );
+
 const normal=new THREE.Vector3(
 radial.x*(horizontal-t.radius),
 p.y-t.rim,
@@ -791,7 +813,6 @@ message("RIM BOUNCE!",350);
 beep(360);
 }
 
-// Hollow container walls.
 if(t.id==="bin"||t.id==="bucket"){
 if(p.y>0&&p.y<t.rim&&
 horizontal>t.radius-BALL_RADIUS&&
@@ -816,7 +837,6 @@ beep(280);
 }
 }
 
-// Basketball backboard.
 if(t.id==="hoop"){
 const boardZ=cz-.9;
 const hitBoard=
@@ -848,11 +868,8 @@ const previous=ballMesh.position.clone();
 shot.age+=step;
 shot.rimCooldown=Math.max(0,shot.rimCooldown-step);
 
-// Gravity continuously reduces the upward speed,
-// then accelerates the ball downwards.
 shot.velocity.y-=GRAVITY*step;
 shot.velocity.x+=wind*.07*step;
-
 ballMesh.position.addScaledVector(shot.velocity,step);
 
 ballMesh.rotation.x+=shot.velocity.z*step*.45;
@@ -861,7 +878,6 @@ ballMesh.rotation.z-=shot.velocity.x*step*.45;
 handleTargetCollision(previous);
 if(!shot||shot.done)return;
 
-// Floor bounces.
 if(ballMesh.position.y<BALL_RADIUS){
 ballMesh.position.y=BALL_RADIUS;
 
@@ -875,7 +891,6 @@ beep(190);
 shot.groundTime+=step;
 }
 
-// Arena walls.
 if(Math.abs(ballMesh.position.x)>8.5){
 ballMesh.position.x=Math.sign(ballMesh.position.x)*8.5;
 shot.velocity.x*=-.6;
@@ -885,7 +900,6 @@ ballMesh.position.z=-14.4;
 shot.velocity.z*=-.6;
 }
 
-// Wait until the flight finishes before declaring a miss.
 if(shot.age>5||
 (shot.age>1.5&&shot.groundTime>.55)){
 finish(false);
@@ -899,7 +913,6 @@ shadow.position.z=ballMesh.position.z;
 shadow.material.opacity=
 Math.max(.05,.28-ballMesh.position.y*.03);
 
-// Fading trajectory trail.
 if(effectsOn&&shot&&!shot.done){
 trailPoints.push(ballMesh.position.clone());
 if(trailPoints.length>32)trailPoints.shift();
@@ -908,19 +921,15 @@ trail.visible=trailPoints.length>1;
 }
 }
 
-// CAMERA TRACKING
 function updateCamera(dt){
 const desired=homeCamera.clone();
 const look=homeLook.clone();
 
 if(screen==="playing"&&shot&&!shot.done){
 const p=ballMesh.position;
-
-// Gentle movement only; target remains in view.
 desired.x=clamp(p.x*.12,-.45,.45);
 desired.y=homeCamera.y+clamp((p.y-1.25)*.11,0,.7);
 desired.z=homeCamera.z-clamp((4-p.z)*.055,0,.65);
-
 look.x=clamp(p.x*.1,-.35,.35);
 look.y=homeLook.y+clamp((p.y-1.25)*.12,0,.65);
 }
@@ -955,10 +964,11 @@ if(!over)updatePhysics(dt);
 updateCamera(dt);
 }
 
-// CHALLENGE MENU
+// CHALLENGES
 function renderChallenges(){
 const list=$("challengeList");
 list.innerHTML="";
+
 $("challengeProgress").textContent=
 "Completed "+challenges.filter(c=>completed.includes(c.id)).length+
 " / "+challenges.length+" · One-time rewards";
@@ -1002,7 +1012,7 @@ list.appendChild(card);
 }
 }
 
-// SHOP
+// BALL SHOP
 function renderShop(){
 $("shopCoins").textContent="🪙 Your coins: "+coins;
 const list=$("skinList");
@@ -1062,7 +1072,7 @@ $("soundToggle").textContent=soundOn?"ON":"OFF";
 $("effectsToggle").textContent=effectsOn?"ON":"OFF";
 }
 
-// BUTTONS
+// MENU BUTTONS
 $("endlessBtn").onclick=()=>startGame("endless");
 $("challengeBtn").onclick=()=>showScreen("challenges");
 $("challengeBack").onclick=()=>showScreen("menu");
@@ -1088,6 +1098,7 @@ $("pause").onclick=()=>{
 session++;
 clearTimeout(finishTimer);
 clearTimeout(messageTimer);
+hidePower();
 shot=null;
 locked=false;
 showScreen("menu");
@@ -1101,7 +1112,7 @@ startGame(gameMode,challengeId);
 }
 };
 
-// MAIN LOOP
+// GAME LOOP
 const clock=new THREE.Clock();
 
 function frame(){
