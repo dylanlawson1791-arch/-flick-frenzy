@@ -708,14 +708,6 @@ function swipeToPower(swipeDistance) {
   return 0.60 + ((normalized - 0.75) / 0.25) * 0.40;
 }
 
-const normalized=clamp(
-(swipeDistance/innerHeight-.06)/.36,0,1
-);
-
-// Smoothstep creates a gentler response around 50%.
-return normalized*normalized*(3-2*normalized);
-}
-
 function launchBall(dx,dy){
 const swipeDistance=Math.max(0,-dy);
 const power=swipeToPower(swipeDistance);
