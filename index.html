@@ -4,17 +4,19 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
-<title>Flick Frenzy V0.9.9</title>
+<meta name="theme-color" content="#ff88c9">
+<title>Flick Frenzy V0.9.10</title>
 <style>
 *{box-sizing:border-box}
 html,body{margin:0;width:100%;height:100%;overflow:hidden}
-body{background:#553484;color:#fff;font-family:system-ui,Arial;touch-action:none;user-select:none}
+body{background:#583a87;color:#fff;font-family:system-ui,Arial;touch-action:none;user-select:none}
 canvas{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none}
-.screen{position:absolute;inset:0;z-index:5;display:none;align-items:center;justify-content:center;padding:15px;background:linear-gradient(145deg,#ff86c5,#a58bff 55%,#66e9e9)}
+.screen{position:absolute;inset:0;z-index:5;display:none;align-items:center;justify-content:center;padding:15px;background:linear-gradient(140deg,#ff87c8,#a58aff 55%,#6ce7e5)}
 .screen.active{display:flex}
 .panel{width:100%;max-width:430px;max-height:89dvh;overflow:auto;touch-action:pan-y;text-align:center;background:#39265ff5;border:2px solid #ffc5e8;border-radius:24px;padding:22px 17px;box-shadow:0 15px 45px #24123b88}
-h1{font-size:42px;line-height:1.04;color:#ffe878;text-shadow:0 4px #e958a0;margin:12px 0}
+h1{font-size:42px;line-height:1.03;color:#ffe878;text-shadow:0 4px #e958a0;margin:12px 0}
 h2{color:#ffe878}
+h3{color:#ffbfdf}
 p{color:#f6eaff}
 button{border:0;border-radius:14px;padding:13px;font-size:15px;font-weight:850;background:#ffe46e;color:#34204f;cursor:pointer}
 button:disabled{opacity:.45}
@@ -40,10 +42,11 @@ button:disabled{opacity:.45}
 </style>
 </head>
 <body>
+
 <div id="loading">
 <div>
 <h1>FLICK FRENZY</h1>
-<p>Loading the Candy Pop Office...</p>
+<p>Loading Cubicle Office...</p>
 </div>
 </div>
 
@@ -69,15 +72,15 @@ button:disabled{opacity:.45}
 <div id="menu" class="screen">
 <div class="panel">
 <h1>FLICK<br>FRENZY</h1>
-<p>🍬 NATURAL TRICK SHOTS 🏢</p>
-<div style="font-size:52px">🏀 🗑️ 🎯</div>
-<p>Bounce off real office furniture to score!</p>
+<p>🍬 CUBICLE TRICK SHOTS 🏢</p>
+<div style="font-size:52px">🏀 🖥️ 🗑️</div>
+<p>Flick, bounce and score in a colourful office!</p>
 <p id="menuStats"></p>
 <button id="endlessBtn" class="menuBtn">♾ ENDLESS MODE</button>
 <button id="challengeBtn" class="menuBtn">🎯 CHALLENGE MODE</button>
 <button id="shopBtn" class="menuBtn secondary">🛒 BALL SHOP</button>
 <button id="settingsBtn" class="menuBtn secondary">⚙ SETTINGS</button>
-<p class="small">V0.9.9 · Furniture physics · Bright aiming</p>
+<p class="small">V0.9.10 · Low cubicle walls · Natural rebounds</p>
 </div>
 </div>
 
@@ -105,7 +108,7 @@ button:disabled{opacity:.45}
 <div class="row"><strong>Sound</strong><button id="soundToggle"></button></div>
 <div class="row"><strong>Visual effects</strong><button id="effectsToggle"></button></div>
 <div class="row"><strong>Trajectory preview</strong><button id="guideToggle"></button></div>
-<p class="small">Swipe upward to throw. Move sideways during the swipe to aim at furniture. The glowing line previews rebounds.</p>
+<p class="small">Swipe upward to throw. Move sideways during the swipe to aim at desks, monitors and cubicle partitions.</p>
 <button id="settingsBack" class="menuBtn secondary">BACK</button>
 </div>
 </div>
@@ -115,9 +118,13 @@ import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.m
 
 const $=id=>document.getElementById(id);
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
-const R=.23,G=9.8;
+
+const R=.23;
+const G=9.8;
 const START=new THREE.Vector3(0,1.25,4);
-const BIN_Z=-8,BIN_R=.92,BIN_H=1.35;
+const BIN_Z=-8;
+const BIN_R=.92;
+const BIN_H=1.35;
 
 const skins=[
 {id:"classic",name:"Classic Neon",price:0,color:"#73faff",glow:"#00dfff"},
@@ -130,7 +137,7 @@ const challenges=[
 {id:"rookie_1",tier:"Rookie",name:"First Basket",desc:"Land 2 shots.",type:"hits",need:2,reward:40},
 {id:"rookie_2",tier:"Rookie",name:"Office Practice",desc:"Land 3 shots.",type:"hits",need:3,reward:55},
 {id:"rookie_3",tier:"Rookie",name:"On a Roll",desc:"Land 3 consecutive shots.",type:"streak",need:3,reward:70},
-{id:"skilled_1",tier:"Skilled",name:"Furniture Bank",desc:"Score 2 shots after bouncing off furniture or a wall.",type:"banks",need:2,reward:100},
+{id:"skilled_1",tier:"Skilled",name:"Cubicle Bank",desc:"Score 2 shots after a rebound.",type:"banks",need:2,reward:100},
 {id:"skilled_2",tier:"Skilled",name:"Moving Bin",desc:"Land 4 shots in a moving bin.",type:"hits",need:4,reward:130,moving:true},
 {id:"skilled_3",tier:"Skilled",name:"Precision",desc:"Land 2 perfect shots.",type:"perfect",need:2,reward:150},
 {id:"expert_1",tier:"Expert",name:"Speed Shooter",desc:"Land 3 shots in 45 seconds.",type:"hits",need:3,reward:180,limit:45},
@@ -166,10 +173,10 @@ localStorage.setItem("ff_coins",coins);
 localStorage.setItem("ff_best",best);
 localStorage.setItem("ff_owned",JSON.stringify(owned));
 localStorage.setItem("ff_equipped",equipped);
-localStorage.setItem("ff_sound",String(soundOn));
-localStorage.setItem("ff_effects",String(effectsOn));
+localStorage.setItem("ff_sound",JSON.stringify(soundOn));
+localStorage.setItem("ff_effects",JSON.stringify(effectsOn));
 localStorage.setItem("ff_challenges_v07",JSON.stringify(completed));
-localStorage.setItem("ff_guide",String(guideOn));
+localStorage.setItem("ff_guide",JSON.stringify(guideOn));
 }catch(e){}
 }
 
@@ -251,8 +258,10 @@ let n;
 do{
 n=Math.floor(Math.random()*palettes.length);
 }while(n===paletteIndex);
+
 paletteIndex=n;
 const p=palettes[n];
+
 for(const k in M)M[k].color.set(p[k]);
 dark.color.set(p.trim);
 scene.background.set(p.wall);
@@ -314,6 +323,10 @@ restitution:.78
 });
 }
 
+// ===================================
+// CANDY POP CUBICLE OFFICE
+// ===================================
+
 // ROOM
 box(13,.2,23,M.floor,0,-.1,-3);
 box(.25,9,23,M.wall,-6.5,4.5,-3);
@@ -325,6 +338,7 @@ box(12.7,.24,.15,M.trim,0,.18,-14.25);
 box(.15,.24,22.5,M.trim,-6.28,.18,-3);
 box(.15,.24,22.5,M.trim,6.28,.18,-3);
 
+// WINDOWS
 for(const x of [-3.5,3.5]){
 box(3.6,3.5,.14,white,x,5,-14.23);
 box(3.2,3.1,.12,glass,x,5,-14.13);
@@ -332,6 +346,7 @@ box(.1,3.2,.14,white,x,5,-14.02);
 box(3.3,.1,.14,white,x,5,-14.02);
 }
 
+// CEILING LIGHTS
 for(const z of [-10,-3,4]){
 box(2.4,.12,1.1,white,0,8.8,z);
 const l=new THREE.PointLight("#fff8ed",8,12);
@@ -339,105 +354,104 @@ l.position.set(0,8.2,z);
 scene.add(l);
 }
 
-// LEFT DESK
-solid(2.8,.24,1.75,M.desk,-4.35,1.5,-4);
+// CUBICLE WALLS
+// These are actual workstation dividers.
+// They are low enough for the ball to
+// fly over or bounce off.
 
-for(const x of [-5.5,-3.2]){
-for(const z of [-4.7,-3.3]){
-solid(.17,1.36,.17,wood,x,.73,z);
+// LEFT CUBICLE ROW
+for(const z of [-2.4,-6.0,-10.2]){
+solid(.16,1.8,3.0,M.chair,-2.35,.9,z);
+solid(3.1,1.8,.16,M.chair,-4.7,.9,z-1.5);
+}
+
+// RIGHT CUBICLE ROW
+for(const z of [-2.4,-6.0,-10.2]){
+solid(.16,1.8,3.0,M.chair,2.35,.9,z);
+solid(3.1,1.8,.16,M.chair,4.7,.9,z-1.5);
+}
+
+// CUBICLE TOP TRIM
+for(const z of [-2.4,-6.0,-10.2]){
+box(.24,.1,3.1,white,-2.35,1.84,z);
+box(.24,.1,3.1,white,2.35,1.84,z);
+box(3.2,.1,.24,white,-4.7,1.84,z-1.5);
+box(3.2,.1,.24,white,4.7,1.84,z-1.5);
+}
+
+// DESK AND COMPUTER WORKSTATION
+function workstation(x,z,side){
+const deskX=x;
+const deskZ=z;
+
+solid(2.5,.2,1.35,M.desk,deskX,1.35,deskZ);
+
+for(const xx of [deskX-1.05,deskX+1.05]){
+for(const zz of [deskZ-.5,deskZ+.5]){
+solid(.13,1.25,.13,wood,xx,.68,zz);
 }
 }
 
-solid(1.22,.84,.16,white,-4.35,2.06,-4.38);
-box(1.02,.63,.025,glass,-4.35,2.08,-4.28);
-solid(.15,.31,.15,M.trim,-4.35,1.68,-4.38);
-solid(.92,.08,.32,M.cabinet,-4.35,1.68,-3.43);
-solid(.17,.08,.25,M.chair,-3.68,1.68,-3.48);
+// MONITOR
+solid(1.1,.75,.15,white,deskX,1.9,deskZ-.32);
+box(.92,.56,.025,glass,deskX,1.92,deskZ-.23);
+solid(.12,.25,.12,M.trim,deskX,1.52,deskZ-.32);
 
-// RIGHT DESK
-solid(2.8,.24,1.75,M.desk,4.35,1.5,-4);
+// KEYBOARD
+solid(.86,.07,.28,M.cabinet,deskX,1.49,deskZ+.3);
 
-for(const x of [3.2,5.5]){
-for(const z of [-4.7,-3.3]){
-solid(.17,1.36,.17,wood,x,.73,z);
+// MOUSE
+solid(.16,.07,.23,M.accent,deskX+side*.68,1.49,deskZ+.32);
+
+// CHAIR
+solid(.82,.16,.78,M.chair,deskX,.85,deskZ+1.08);
+solid(.82,.86,.16,M.chair,deskX,1.32,deskZ+1.47);
+solid(.13,.7,.13,M.trim,deskX,.4,deskZ+1.08);
 }
-}
 
-solid(1.22,.84,.16,white,4.35,2.06,-4.38);
-box(1.02,.63,.025,glass,4.35,2.08,-4.28);
-solid(.15,.31,.15,M.trim,4.35,1.68,-4.38);
-solid(.92,.08,.32,M.cabinet,4.35,1.68,-3.43);
-solid(.17,.08,.25,M.chair,5.02,1.68,-3.48);
+// SIX CUBICLE WORKSTATIONS
+workstation(-4.5,-2.5,-1);
+workstation(4.5,-2.5,1);
 
-// CHAIRS
-for(const x of [-4.3,4.3]){
-solid(1.05,.2,1,M.chair,x,.94,-2.2);
-solid(1.05,1.03,.2,M.chair,x,1.49,-1.72);
-solid(.16,.75,.16,M.trim,x,.45,-2.2);
-solid(.13,.14,1,M.trim,x-.6,1.25,-2.2);
-solid(.13,.14,1,M.trim,x+.6,1.25,-2.2);
-}
+workstation(-4.5,-6.1,-1);
+workstation(4.5,-6.1,1);
+
+workstation(-4.5,-10.3,-1);
+workstation(4.5,-10.3,1);
 
 // FILING CABINETS
-for(const x of [-5.05,5.05]){
-solid(1.42,2.6,1.2,M.cabinet,x,1.3,-8.2);
-for(let i=0;i<3;i++){
-solid(.95,.08,.06,white,x,.55+i*.82,-7.56);
+for(const x of [-5.65,5.65]){
+solid(.9,1.45,.85,M.cabinet,x,.725,-12.6);
+
+for(let i=0;i<2;i++){
+solid(.55,.06,.05,white,x,.42+i*.65,-12.14);
 }
 }
 
-// BOOKSHELVES
-for(const y of [2.3,3.65,5]){
-solid(1.9,.18,.72,M.desk,5.1,y,-11.5);
-}
-
-for(const x of [4.18,6.02]){
-solid(.14,3.1,.72,wood,x,3.65,-11.5);
-}
-
-for(let i=0;i<6;i++){
-solid(.19,.55,.42,i%2?M.chair:M.accent,4.45+i*.24,2.68,-11.5);
-}
-
-// BOXES
-for(const x of [-4.6,-3.85]){
-solid(.9,.75,.9,M.chair,x,.375,-11.1);
-}
-solid(.74,.7,.74,M.accent,-4.6,1.1,-11.1);
+// OFFICE STORAGE BOXES
+solid(.72,.62,.72,M.accent,-4.85,.31,-12.1);
+solid(.62,.55,.62,M.desk,4.85,.275,-12.1);
 
 // PLANTS
-for(const x of [-5.3,5.35]){
-potSolid(.45,.34,.72,M.desk,x,.36,-12.4);
-ballSolid(.55,leaf,x,1.25,-12.4);
-ballSolid(.35,leaf,x-.27,1.47,-12.4);
+for(const x of [-5.7,5.7]){
+potSolid(.35,.27,.58,M.desk,x,.29,-1);
+ballSolid(.42,leaf,x,.91,-1);
 }
 
-// NORMAL OFFICE SIDE TABLES
-solid(1.4,.17,1.1,M.desk,-3.35,1,-7);
-for(const x of [-3.85,-2.85]){
-for(const z of [-7.4,-6.6]){
-solid(.12,.9,.12,wood,x,.48,z);
-}
-}
+// SMALL FLOOR RUG
+box(2.0,.025,2.6,M.accent,0,.025,-5.7);
 
-solid(1.4,.17,1.1,M.desk,3.35,1,-7);
-for(const x of [2.85,3.85]){
-for(const z of [-7.4,-6.6]){
-solid(.12,.9,.12,wood,x,.48,z);
-}
-}
+// CUBICLE OFFICE DECOR
+box(1.5,1.1,.08,white,-6.25,4.2,-7.5);
+box(1.15,.75,.09,M.accent,-6.17,4.2,-7.5);
 
-// COMPUTER ON SIDE TABLE
-solid(.88,.7,.14,white,3.35,1.52,-7.32);
-box(.7,.52,.025,glass,3.35,1.53,-7.23);
-solid(.7,.07,.26,M.chair,3.35,1.13,-6.7);
+box(1.5,1.1,.08,white,6.25,4.2,-7.5);
+box(1.15,.75,.09,M.cabinet,6.17,4.2,-7.5);
 
-// DECORATIONS
-box(2.6,.035,2.4,M.chair,0,.025,-5.6);
-box(1.5,1.1,.08,white,-6.25,4.1,-7);
-box(1.15,.75,.09,M.accent,-6.17,4.1,-7);
+// ===================================
+// WASTEPAPER BIN TARGET
+// ===================================
 
-// OFFICE BIN TARGET
 const targetGroup=new THREE.Group();
 targetGroup.position.set(0,0,BIN_Z);
 scene.add(targetGroup);
@@ -468,7 +482,10 @@ side:THREE.DoubleSide
 );
 targetMarker.rotation.x=-Math.PI/2;
 
-// BALL
+// ===================================
+// BALL AND AIMING GUIDE
+// ===================================
+
 const ballMat=new THREE.MeshStandardMaterial({
 color:"#73faff",
 emissive:"#00aacc",
@@ -508,13 +525,13 @@ opacity:.7
 scene.add(trail);
 trail.visible=false;
 
-// BRIGHT AIMING GUIDE
+// TWO-LAYER TRAJECTORY
 const guideOuter=new THREE.Line(
 new THREE.BufferGeometry(),
 new THREE.LineBasicMaterial({
-color:"#392c75",
+color:"#382459",
 transparent:true,
-opacity:.85,
+opacity:.95,
 depthTest:false
 })
 );
@@ -535,7 +552,7 @@ guideInner.renderOrder=101;
 scene.add(guideInner);
 guideInner.visible=false;
 
-// BOUNCE MARKERS
+// PINK BOUNCE MARKERS
 const bounceMarkers=[];
 const bounceMaterial=new THREE.MeshBasicMaterial({
 color:"#ff4aa7",
@@ -552,6 +569,7 @@ marker.visible=false;
 bounceMarkers.push(marker);
 }
 
+// GREEN SUCCESS MARKER
 const predictedHit=mesh(
 new THREE.SphereGeometry(.19,14,10),
 new THREE.MeshBasicMaterial({
@@ -578,6 +596,10 @@ ballLight.color.set(s.glow);
 trail.material.color.set(s.color);
 }
 
+// ===================================
+// GAME STATE
+// ===================================
+
 let screen="menu";
 let mode="endless";
 let challengeId=null;
@@ -597,6 +619,7 @@ document.querySelectorAll(".screen").forEach(e=>e.classList.remove("active"));
 if(id!=="playing")$(id).classList.add("active");
 
 const play=id==="playing";
+
 $("hud").style.display=play?"grid":"none";
 $("label").style.display=play?"block":"none";
 $("goal").style.display=play&&mode==="challenge"?"block":"none";
@@ -625,7 +648,7 @@ $("banks").textContent="Banks: "+banks;
 
 function updateLabel(){
 $("label").textContent=mode==="endless"?
-"🏢 OFFICE · ROUND "+round:
+"🏢 CUBICLE OFFICE · ROUND "+round:
 "🎯 "+(activeChallenge()?.name||"Challenge");
 }
 
@@ -644,6 +667,7 @@ $("goal").textContent=c.desc+" · "+challengeCount+"/"+c.need+
 function message(t,duration=0){
 clearTimeout(messageTimer);
 $("message").textContent=t;
+
 if(duration){
 const s=session;
 messageTimer=setTimeout(()=>{
@@ -656,11 +680,14 @@ function beep(freq){
 if(!soundOn)return;
 try{
 audio=audio||new(window.AudioContext||window.webkitAudioContext)();
+
 const o=audio.createOscillator();
 const g=audio.createGain();
+
 o.frequency.value=freq;
 g.gain.setValueAtTime(.045,audio.currentTime);
 g.gain.exponentialRampToValueAtTime(.001,audio.currentTime+.13);
+
 o.connect(g);
 g.connect(audio.destination);
 o.start();
@@ -675,6 +702,7 @@ ball.rotation.set(0,0,0);
 ball.scale.set(1,1,1);
 ball.visible=true;
 ballLight.position.copy(START);
+
 hideGuide();
 trail.visible=false;
 trailPoints=[];
@@ -707,16 +735,18 @@ shufflePalette();
 targetGroup.position.x=0;
 camera.position.copy(cameraHome);
 cameraLook.copy(lookHome);
+
 resetBall();
 updateHUD();
 updateLabel();
 updateGoal();
 
 $("hint").textContent=
-"Swipe UP · Bright line = predicted flight · Pink dots = rebounds";
+"Swipe UP · Yellow = path · Pink = bounce · Green = score";
 $("power").textContent="";
+
 showScreen("playing");
-message("🏢 CANDY POP OFFICE!",1300);
+message("🏢 CUBICLE OFFICE!",1300);
 }
 
 function completeChallenge(){
@@ -724,6 +754,7 @@ const c=activeChallenge();
 if(!c)return;
 
 const fresh=!completed.includes(c.id);
+
 if(fresh){
 completed.push(c.id);
 coins+=c.reward;
@@ -772,6 +803,7 @@ const points=10*Math.min(combo,3)+(perfect?20:0)+(bank?15:0);
 score+=points;
 coins+=5+(perfect?5:0);
 best=Math.max(best,score);
+
 if(bank)banks++;
 
 if(mode==="challenge"){
@@ -788,7 +820,7 @@ updateGoal();
 }
 
 message(bank?
-"BANK SHOT! +"+points:
+"CUBICLE BANK! +"+points:
 perfect?"PERFECT! +"+points:
 "SWISH! +"+points);
 
@@ -844,34 +876,53 @@ resetBall();
 },1100);
 }
 
-// ORIGINAL V0.9.3 SWIPE SENSITIVITY
+// ===================================
+// ORIGINAL SWIPE SENSITIVITY
+// ===================================
+
 function swipeToPower(swipeDistance){
 const normalized=clamp(
 (swipeDistance/innerHeight-.06)/.36,
 0,1
 );
+
 if(normalized<.25){
 return(normalized/.25)*.40;
 }
+
 if(normalized<=.75){
 return .40+(normalized-.25)*.40;
 }
+
 return .60+((normalized-.75)/.25)*.40;
 }
 
+// SHOT VELOCITY
 function launchVelocity(dx,dy){
 const power=swipeToPower(Math.max(0,-dy));
 const sideways=clamp(dx/(innerWidth*.27),-1,1);
+
+// Forward speed and arc tuned for office bin.
 const forward=7.6+power*3;
 const flight=12/forward;
 const height=BIN_H+.12;
-const vertical=(height-START.y+.5*G*flight*flight)/flight;
+
+const vertical=
+(height-START.y+.5*G*flight*flight)/flight;
 
 return{
 power,
-velocity:new THREE.Vector3(sideways*6.6,vertical,-forward)
+velocity:new THREE.Vector3(
+sideways*6.6,
+vertical,
+-forward
+)
 };
 }
+
+// ===================================
+// SHARED COLLISION PHYSICS
+// ===================================
 
 const UP=new THREE.Vector3(0,1,0);
 
@@ -893,6 +944,7 @@ events:[]
 
 function rebound(s,n,e,bank=true){
 const speed=s.v.dot(n);
+
 if(speed>=-.01)return false;
 
 s.v.addScaledVector(n,-(1+e)*speed);
@@ -913,18 +965,22 @@ if(p.x<-6.25+R){
 p.x=-6.25+R;
 rebound(s,new THREE.Vector3(1,0,0),.86);
 }
+
 if(p.x>6.25-R){
 p.x=6.25-R;
 rebound(s,new THREE.Vector3(-1,0,0),.86);
 }
+
 if(p.z<-14.2+R){
 p.z=-14.2+R;
 rebound(s,new THREE.Vector3(0,0,1),.86);
 }
+
 if(p.z>8.35-R){
 p.z=8.35-R;
 rebound(s,new THREE.Vector3(0,0,-1),.86);
 }
+
 if(p.y>8.75-R){
 p.y=8.75-R;
 rebound(s,new THREE.Vector3(0,-1,0),.78);
@@ -984,6 +1040,7 @@ radial>1e-8?local.z*nearestR/radial:0
 
 const delta=local.sub(near);
 const d=delta.length();
+
 if(d>=R)continue;
 
 const n=d>1e-8?
@@ -995,6 +1052,7 @@ rebound(s,n,b.restitution);
 continue;
 }
 
+// ROTATED BOX COLLISION
 const local=s.p.clone()
 .sub(b.center)
 .applyAxisAngle(UP,-b.angle);
@@ -1024,9 +1082,10 @@ const faces=[
 ];
 
 faces.sort((a,b)=>a.d-b.d);
-normal=new THREE.Vector3();
 
+normal=new THREE.Vector3();
 const axis=faces[0].axis;
+
 normal.setComponent(
 axis,
 Math.sign(local.getComponent(axis))||1
@@ -1047,6 +1106,7 @@ const dx=p.x-cx;
 const dz=p.z-BIN_Z;
 const horizontal=Math.hypot(dx,dz);
 
+// BALL ENTERS THE BIN
 if(previous.y>=BIN_H&&p.y<BIN_H&&s.v.y<0){
 const t=clamp(
 (previous.y-BIN_H)/(previous.y-p.y),
@@ -1065,6 +1125,7 @@ return;
 }
 }
 
+// RIM COLLISION
 const ringDistance=Math.hypot(
 horizontal-BIN_R,
 p.y-BIN_H
@@ -1091,6 +1152,7 @@ s.cooldown=.12;
 }
 }
 
+// OUTSIDE OF BIN
 if(p.y>R&&p.y<BIN_H-R*.25&&
 Math.abs(horizontal-BIN_R)<R){
 
@@ -1117,6 +1179,7 @@ function physicsStep(s,dt,cx){
 if(s.done)return;
 
 const previous=s.p.clone();
+
 s.age+=dt;
 s.cooldown=Math.max(0,s.cooldown-dt);
 s.v.y-=G*dt;
@@ -1131,6 +1194,10 @@ s.done=true;
 }
 }
 
+// ===================================
+// AIMING PREVIEW
+// ===================================
+
 function drawGuide(dx,dy){
 if(!guideOn){
 hideGuide();
@@ -1143,6 +1210,7 @@ const points=[sim.p.clone()];
 
 for(let i=0;i<900;i++){
 physicsStep(sim,1/180,targetGroup.position.x);
+
 if(i%4===0)points.push(sim.p.clone());
 if(sim.done)break;
 }
@@ -1151,6 +1219,7 @@ const geo=new THREE.BufferGeometry().setFromPoints(points);
 
 guideOuter.geometry.dispose();
 guideInner.geometry.dispose();
+
 guideOuter.geometry=geo;
 guideInner.geometry=geo.clone();
 
@@ -1160,7 +1229,10 @@ guideInner.visible=true;
 for(let i=0;i<bounceMarkers.length;i++){
 const m=bounceMarkers[i];
 m.visible=i<sim.events.length;
-if(m.visible)m.position.copy(sim.events[i]);
+
+if(m.visible){
+m.position.copy(sim.events[i]);
+}
 }
 
 predictedHit.visible=sim.scored;
@@ -1237,6 +1309,10 @@ touch=null;
 hideGuide();
 });
 
+// ===================================
+// BALL ANIMATION
+// ===================================
+
 function updateBall(dt){
 if(!shot||shot.done)return;
 
@@ -1267,7 +1343,10 @@ shadow.material.opacity=clamp(
 
 if(effectsOn){
 trailPoints.push(ball.position.clone());
-if(trailPoints.length>30)trailPoints.shift();
+
+if(trailPoints.length>30){
+trailPoints.shift();
+}
 
 trail.geometry.dispose();
 trail.geometry=new THREE.BufferGeometry().setFromPoints(trailPoints);
@@ -1295,6 +1374,7 @@ look.y+=clamp((p.y-1.25)*.13,0,.8);
 }
 
 const a=1-Math.exp(-dt*2.8);
+
 camera.position.lerp(desired,a);
 cameraLook.lerp(look,a);
 camera.lookAt(cameraLook);
@@ -1332,6 +1412,10 @@ ball.scale.set(
 1+squash*.6
 );
 }
+
+// ===================================
+// CHALLENGE MENU
+// ===================================
 
 function renderChallenges(){
 const list=$("challengeList");
@@ -1380,6 +1464,10 @@ list.appendChild(card);
 }
 }
 }
+
+// ===================================
+// BALL SHOP
+// ===================================
 
 function renderShop(){
 $("shopCoins").textContent="🪙 Coins: "+coins;
@@ -1438,6 +1526,10 @@ list.appendChild(card);
 }
 }
 
+// ===================================
+// SETTINGS AND BUTTONS
+// ===================================
+
 function renderSettings(){
 $("soundToggle").textContent=soundOn?"ON":"OFF";
 $("effectsToggle").textContent=effectsOn?"ON":"OFF";
@@ -1490,6 +1582,10 @@ startGame(mode,challengeId);
 }
 };
 
+// ===================================
+// MAIN LOOP
+// ===================================
+
 const clock=new THREE.Clock();
 
 function frame(){
@@ -1505,6 +1601,7 @@ updateHUD();
 showScreen("menu");
 $("loading").style.display="none";
 frame();
+
 </script>
 </body>
 </html>
