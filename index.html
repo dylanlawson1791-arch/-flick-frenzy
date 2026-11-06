@@ -4,26 +4,80 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
-<meta name="theme-color" content="#ff75b5">
-<title>Flick Frenzy V0.9.6</title>
+<meta name="theme-color" content="#ff80bd">
+<title>Flick Frenzy V0.9.7</title>
 <style>
 *{box-sizing:border-box}
 html,body{margin:0;width:100%;height:100%;overflow:hidden}
-body{font-family:system-ui,Arial;background:#422775;color:white;touch-action:none;user-select:none}
-canvas{position:absolute;inset:0;display:block;width:100%;height:100%;touch-action:none}
-.screen{position:absolute;inset:0;z-index:5;display:none;align-items:center;justify-content:center;padding:15px;background:linear-gradient(145deg,#ff75b5,#a47aff 55%,#42dff4)}
+body{
+font-family:system-ui,Arial,sans-serif;
+background:#52318b;
+color:white;
+touch-action:none;
+user-select:none
+}
+canvas{
+position:absolute;
+inset:0;
+display:block;
+width:100%;
+height:100%;
+touch-action:none
+}
+.screen{
+position:absolute;
+inset:0;
+z-index:5;
+display:none;
+align-items:center;
+justify-content:center;
+padding:14px;
+background:linear-gradient(145deg,#ff86c1,#ad86ff 55%,#63e4ed)
+}
 .screen.active{display:flex}
-.panel{width:100%;max-width:430px;max-height:88dvh;overflow:auto;touch-action:pan-y;padding:22px 18px;background:#38245ff5;border:2px solid #ffb5e4;border-radius:26px;text-align:center;box-shadow:0 18px 55px #24144288}
-h1{font-size:43px;line-height:1;margin:12px 0;color:#ffe76b;text-shadow:0 4px #ef559f}
-h2{color:#ffe76b}
-h3{margin:12px 0}
+.panel{
+width:100%;
+max-width:440px;
+max-height:88dvh;
+overflow:auto;
+touch-action:pan-y;
+padding:22px 18px;
+background:#39245ff5;
+border:2px solid #ffc2e7;
+border-radius:26px;
+text-align:center;
+box-shadow:0 18px 50px #28144888
+}
+h1{
+font-size:42px;
+line-height:1.04;
+margin:10px 0;
+color:#ffe86e;
+text-shadow:0 4px #ef559e
+}
+h2{color:#ffe86e}
 p{color:#f9eaff}
-button{border:0;border-radius:15px;padding:13px 15px;font-size:15px;font-weight:900;background:#ffe46b;color:#32204f;cursor:pointer}
+button{
+border:0;
+border-radius:15px;
+padding:13px 15px;
+font-size:15px;
+font-weight:900;
+background:#ffe46b;
+color:#32204f;
+cursor:pointer
+}
 button:disabled{opacity:.45}
 .menu-btn{display:block;width:100%;margin:10px 0}
-.secondary{background:#9a6ff0;color:white}
+.secondary{background:#9871ec;color:white}
 .small{font-size:13px}
-.choice,.skin{padding:12px;margin:12px 0;background:#543582;border:1px solid #bd91ff;border-radius:17px}
+.choice,.skin{
+padding:12px;
+margin:12px 0;
+background:#543582;
+border:1px solid #bd91ff;
+border-radius:17px
+}
 .choice{text-align:left}
 .choice strong{color:#ffe76b}
 .choice p{font-size:13px}
@@ -31,19 +85,102 @@ button:disabled{opacity:.45}
 .choice.done{border-color:#75e6bc}
 .choice.locked{opacity:.55}
 .meta{font-size:12px;color:#c5f7ff;margin:8px 0}
-.skin-ball{width:64px;height:64px;margin:8px auto;border-radius:50%;box-shadow:0 0 20px currentColor}
-.row{display:flex;justify-content:space-between;align-items:center;gap:10px;margin:18px 0}
-#hud{position:absolute;z-index:2;top:calc(env(safe-area-inset-top) + 10px);width:100%;padding:0 9px;display:none;grid-template-columns:repeat(3,1fr);gap:5px;pointer-events:none}
-.stat{background:#35265bdd;border:1px solid #ffffff77;border-radius:12px;padding:8px 2px;text-align:center;font-size:12px;font-weight:bold}
-#modeLabel,#challengeGoal,#message,#hint,#power{position:absolute;z-index:2;width:100%;text-align:center;pointer-events:none;display:none;padding:0 12px}
-#modeLabel{top:calc(env(safe-area-inset-top) + 106px);font-size:13px;font-weight:bold;color:#ffe76b}
-#challengeGoal{top:calc(env(safe-area-inset-top) + 127px);font-size:12px;text-shadow:0 2px 5px #221234}
-#message{top:25%;font-size:25px;font-weight:900;text-shadow:0 3px 10px #20112f}
-#hint{bottom:11%;font-size:13px;text-shadow:0 2px 5px #21112d}
-#power{bottom:18%;font-size:15px;font-weight:bold;color:#ffe76b;opacity:0;transition:opacity .25s}
-#pause{position:absolute;z-index:3;right:12px;bottom:calc(env(safe-area-inset-bottom) + 12px);display:none;font-size:13px}
-#again{position:absolute;z-index:3;top:58%;left:50%;transform:translateX(-50%);display:none;white-space:nowrap}
-#loading{position:absolute;inset:0;z-index:20;background:#56318d;display:flex;align-items:center;justify-content:center;text-align:center;padding:25px}
+.skin-ball{
+width:64px;
+height:64px;
+margin:8px auto;
+border-radius:50%;
+box-shadow:0 0 20px currentColor
+}
+.row{
+display:flex;
+justify-content:space-between;
+align-items:center;
+gap:10px;
+margin:18px 0
+}
+#hud{
+position:absolute;
+z-index:2;
+top:calc(env(safe-area-inset-top) + 9px);
+width:100%;
+padding:0 9px;
+display:none;
+grid-template-columns:repeat(3,1fr);
+gap:5px;
+pointer-events:none
+}
+.stat{
+background:#35265bdd;
+border:1px solid #ffffff77;
+border-radius:12px;
+padding:8px 2px;
+text-align:center;
+font-size:12px;
+font-weight:bold
+}
+#modeLabel,#challengeGoal,#message,#hint,#power{
+position:absolute;
+z-index:2;
+width:100%;
+text-align:center;
+pointer-events:none;
+display:none;
+padding:0 12px;
+text-shadow:0 2px 6px #241339
+}
+#modeLabel{
+top:calc(env(safe-area-inset-top) + 106px);
+font-size:13px;
+font-weight:bold;
+color:#ffe76b
+}
+#challengeGoal{
+top:calc(env(safe-area-inset-top) + 128px);
+font-size:12px
+}
+#message{
+top:25%;
+font-size:25px;
+font-weight:900
+}
+#hint{bottom:11%;font-size:13px}
+#power{
+bottom:18%;
+font-size:15px;
+font-weight:bold;
+color:#ffe76b;
+opacity:0;
+transition:opacity .25s
+}
+#pause{
+position:absolute;
+z-index:3;
+right:12px;
+bottom:calc(env(safe-area-inset-bottom) + 12px);
+display:none;
+font-size:13px
+}
+#again{
+position:absolute;
+z-index:3;
+top:58%;
+left:50%;
+transform:translateX(-50%);
+display:none;
+white-space:nowrap
+}
+#loading{
+position:absolute;
+inset:0;
+z-index:20;
+background:#56318d;
+display:flex;
+align-items:center;
+justify-content:center;
+text-align:center;
+padding:25px
+}
 </style>
 </head>
 <body>
@@ -51,7 +188,7 @@ button:disabled{opacity:.45}
 <div id="loading">
 <div>
 <h1>FLICK FRENZY</h1>
-<p>Loading Candy Pop Arcade...</p>
+<p>Building the Trick Shot Office...</p>
 </div>
 </div>
 
@@ -78,15 +215,15 @@ button:disabled{opacity:.45}
 <div id="menu" class="screen">
 <div class="panel">
 <h1>FLICK<br>FRENZY</h1>
-<p>🍬 CANDY POP ARCADE 🕹️</p>
-<p>Colourful offices. Big bounces. Trick shots!</p>
-<div style="font-size:55px">🏀 🗑️</div>
+<p>🍬 TRICK SHOT OFFICE 🏢</p>
+<p>Bounce off furniture and land the ball in the bin!</p>
+<div style="font-size:52px">🏀 🗑️ 🎯</div>
 <p id="menuStats"></p>
 <button id="endlessBtn" class="menu-btn">♾ ENDLESS MODE</button>
 <button id="challengeBtn" class="menu-btn">🎯 CHALLENGE MODE</button>
 <button id="shopBtn" class="menu-btn secondary">🛒 BALL SHOP</button>
 <button id="settingsBtn" class="menu-btn secondary">⚙ SETTINGS</button>
-<p class="small">V0.9.6 · Colour Shuffle Edition</p>
+<p class="small">V0.9.7 · Candy Pop Trick Shots</p>
 </div>
 </div>
 
@@ -119,13 +256,16 @@ button:disabled{opacity:.45}
 <strong>Visual effects</strong>
 <button id="effectsToggle"></button>
 </div>
-<p class="small">Swipe up to throw. Bank shots off walls and furniture!</p>
+<p class="small">
+Swipe upward to throw. Aim left or right to bank the ball off office furniture.
+</p>
 <button id="settingsBack" class="menu-btn secondary">← BACK</button>
 </div>
 </div>
 
 <script type="module">
-import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js";
+import * as THREE from
+"https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js";
 
 const $=id=>document.getElementById(id);
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
@@ -140,49 +280,55 @@ const skins=[
 {id:"gold",name:"Golden Ball",price:1500,color:"#ffd447",glow:"#fff27a"}
 ];
 
-const targets=[
-{id:"bin",name:"Rubbish Bin",icon:"🗑️",radius:.85,rim:1.35},
-{id:"hoop",name:"Basketball Hoop",icon:"🏀",radius:.72,rim:2.6},
-{id:"ring",name:"Neon Ring",icon:"⭕",radius:.8,rim:1.8},
-{id:"bucket",name:"Giant Bucket",icon:"🪣",radius:1.1,rim:1.15}
-];
-
+// Existing challenge IDs are retained for saved progress.
+// All challenges now use the Office wastepaper bin.
 const challenges=[
-{id:"rookie_1",tier:"Rookie",name:"First Basket",desc:"Land 2 shots in the rubbish bin.",target:"bin",goal:"hits",need:2,reward:40},
-{id:"rookie_2",tier:"Rookie",name:"Bucket Beginner",desc:"Land 3 shots in the giant bucket.",target:"bucket",goal:"hits",need:3,reward:55},
-{id:"rookie_3",tier:"Rookie",name:"On a Roll",desc:"Score 3 shots consecutively in the bin.",target:"bin",goal:"streak",need:3,reward:70},
-{id:"skilled_1",tier:"Skilled",name:"Swish Master",desc:"Score 3 basketball hoops without missing.",target:"hoop",goal:"streak",need:3,reward:100},
-{id:"skilled_2",tier:"Skilled",name:"Moving Madness",desc:"Land 4 shots in a moving bucket.",target:"bucket",goal:"hits",need:4,reward:130,moving:true},
-{id:"skilled_3",tier:"Skilled",name:"Precision Ring",desc:"Land 2 perfect ring shots.",target:"ring",goal:"perfect",need:2,reward:150},
-{id:"expert_1",tier:"Expert",name:"Speed Shooter",desc:"Land 3 basketball shots in 45 seconds.",target:"hoop",goal:"hits",need:3,reward:180,limit:45},
-{id:"expert_2",tier:"Expert",name:"Moving Precision",desc:"Land 3 perfect shots in a moving bin.",target:"bin",goal:"perfect",need:3,reward:200,moving:true},
-{id:"expert_3",tier:"Expert",name:"Ring Rush",desc:"Land 4 ring shots in 55 seconds.",target:"ring",goal:"hits",need:4,reward:230,limit:55},
-{id:"legend_1",tier:"Legend",name:"Legendary Streak",desc:"Land 5 consecutive shots in a moving hoop.",target:"hoop",goal:"streak",need:5,reward:350,moving:true}
+{id:"rookie_1",tier:"Rookie",name:"First Basket",desc:"Land 2 shots in the office bin.",goal:"hits",need:2,reward:40},
+{id:"rookie_2",tier:"Rookie",name:"Office Practice",desc:"Land 3 shots in the office bin.",goal:"hits",need:3,reward:55},
+{id:"rookie_3",tier:"Rookie",name:"On a Roll",desc:"Score 3 consecutive shots.",goal:"streak",need:3,reward:70},
+{id:"skilled_1",tier:"Skilled",name:"Desk Bank",desc:"Land 2 bank shots off office objects.",goal:"banks",need:2,reward:100},
+{id:"skilled_2",tier:"Skilled",name:"Moving Madness",desc:"Land 4 shots in a moving bin.",goal:"hits",need:4,reward:130,moving:true},
+{id:"skilled_3",tier:"Skilled",name:"Precision Office",desc:"Land 2 perfect bin shots.",goal:"perfect",need:2,reward:150},
+{id:"expert_1",tier:"Expert",name:"Speed Shooter",desc:"Land 3 shots in 45 seconds.",goal:"hits",need:3,reward:180,limit:45},
+{id:"expert_2",tier:"Expert",name:"Moving Precision",desc:"Land 3 perfect shots in a moving bin.",goal:"perfect",need:3,reward:200,moving:true},
+{id:"expert_3",tier:"Expert",name:"Bank Shot Rush",desc:"Land 2 bank shots in 55 seconds.",goal:"banks",need:2,reward:230,limit:55},
+{id:"legend_1",tier:"Legend",name:"Legendary Streak",desc:"Land 5 consecutive shots in a moving bin.",goal:"streak",need:5,reward:350,moving:true}
 ];
 
 let coins=0,best=0,owned=["classic"],equipped="classic";
 let soundOn=true,effectsOn=true,completed=[];
 let score=0,misses=0,combo=0,banks=0;
 let screen="menu",gameMode="endless",challengeId=null;
-let selectedTarget="bin",targetIndex=0;
 let challengeCount=0,challengeStreak=0,challengeStart=0;
 let shot=null,touchStart=null,targetPhase=0;
 let locked=false,over=false,session=0;
-let finishTimer=null,messageTimer=null,powerTimer=null,audioCtx=null;
+let finishTimer=null,messageTimer=null,powerTimer=null;
+let audioCtx=null;
+let round=1;
 
 function load(){
 try{
 coins=Math.max(0,Number(localStorage.getItem("ff_coins"))||0);
 best=Math.max(0,Number(localStorage.getItem("ff_best"))||0);
+
 const v=JSON.parse(localStorage.getItem("ff_owned")||'["classic"]');
-if(Array.isArray(v))owned=v.filter(x=>skins.some(s=>s.id===x));
+if(Array.isArray(v)){
+owned=v.filter(x=>skins.some(s=>s.id===x));
+}
 if(!owned.includes("classic"))owned.unshift("classic");
+
 equipped=localStorage.getItem("ff_equipped")||"classic";
 if(!owned.includes(equipped))equipped="classic";
+
 soundOn=localStorage.getItem("ff_sound")!=="false";
 effectsOn=localStorage.getItem("ff_effects")!=="false";
-const d=JSON.parse(localStorage.getItem("ff_challenges_v07")||"[]");
-if(Array.isArray(d))completed=d.filter(x=>typeof x==="string");
+
+const d=JSON.parse(
+localStorage.getItem("ff_challenges_v07")||"[]"
+);
+if(Array.isArray(d)){
+completed=d.filter(x=>typeof x==="string");
+}
 }catch(e){}
 }
 
@@ -194,138 +340,71 @@ localStorage.setItem("ff_owned",JSON.stringify(owned));
 localStorage.setItem("ff_equipped",equipped);
 localStorage.setItem("ff_sound",String(soundOn));
 localStorage.setItem("ff_effects",String(effectsOn));
-localStorage.setItem("ff_challenges_v07",JSON.stringify(completed));
+localStorage.setItem(
+"ff_challenges_v07",JSON.stringify(completed)
+);
 }catch(e){}
 }
 load();
 
-// ======================================
-// V0.9.6 CANDY POP COLOUR SHUFFLE
-// 65% CANDY
-// 25% BRIGHT CARTOON
-// 10% RETRO ARCADE
-// ======================================
+// =======================================
+// CANDY POP COLOUR PALETTES
+// =======================================
 
 const palettes=[
 {
 name:"Bubblegum Blast",
-wall:"#FF94CA",
-floor:"#FFF0A6",
-back:"#6DDBF5",
-desk:"#FFE064",
-chair:"#B18BFF",
-cabinet:"#7CE8B4",
-accent:"#FF6FAD",
-trim:"#A36CF4",
-window:"#8DE8FF",
-plant:"#5FDC8C",
-wood:"#FFA980",
-glow:"#FF5DB9"
+wall:"#FF94CA",floor:"#FFF0A6",
+back:"#6DDBF5",desk:"#FFE064",
+chair:"#B18BFF",cabinet:"#7CE8B4",
+accent:"#FF6FAD",trim:"#A36CF4",
+window:"#8DE8FF",plant:"#5FDC8C",
+wood:"#FFA980",glow:"#FF5DB9"
 },
 {
 name:"Tropical Candy",
-wall:"#FFA68C",
-floor:"#FFF0B5",
-back:"#7CE5C9",
-desk:"#FFDA68",
-chair:"#E39CFF",
-cabinet:"#55D7EE",
-accent:"#FF73A5",
-trim:"#8B63E9",
-window:"#95F0FF",
-plant:"#62D89A",
-wood:"#FFB77B",
-glow:"#FF6CA8"
+wall:"#FFA68C",floor:"#FFF0B5",
+back:"#7CE5C9",desk:"#FFDA68",
+chair:"#E39CFF",cabinet:"#55D7EE",
+accent:"#FF73A5",trim:"#8B63E9",
+window:"#95F0FF",plant:"#62D89A",
+wood:"#FFB77B",glow:"#FF6CA8"
 },
 {
 name:"Electric Grape",
-wall:"#B995FF",
-floor:"#FFE6F3",
-back:"#71E5F3",
-desk:"#FFE36A",
-chair:"#FF8CBF",
-cabinet:"#8BE6AC",
-accent:"#FF65AA",
-trim:"#7952D9",
-window:"#A7F2FF",
-plant:"#69D8A1",
-wood:"#FFA98E",
-glow:"#DA6CFF"
+wall:"#B995FF",floor:"#FFE6F3",
+back:"#71E5F3",desk:"#FFE36A",
+chair:"#FF8CBF",cabinet:"#8BE6AC",
+accent:"#FF65AA",trim:"#7952D9",
+window:"#A7F2FF",plant:"#69D8A1",
+wood:"#FFA98E",glow:"#DA6CFF"
 },
 {
 name:"Minty Pop",
-wall:"#91F0D4",
-floor:"#FFF1C8",
-back:"#FF9CCC",
-desk:"#FFDC65",
-chair:"#9A8AFF",
-cabinet:"#68DFF0",
-accent:"#FF76AA",
-trim:"#8E65E8",
-window:"#A0EDFF",
-plant:"#58CD8C",
-wood:"#FFA77B",
-glow:"#65E8FF"
+wall:"#91F0D4",floor:"#FFF1C8",
+back:"#FF9CCC",desk:"#FFDC65",
+chair:"#9A8AFF",cabinet:"#68DFF0",
+accent:"#FF76AA",trim:"#8E65E8",
+window:"#A0EDFF",plant:"#58CD8C",
+wood:"#FFA77B",glow:"#65E8FF"
 },
 {
 name:"Peach Fizz",
-wall:"#FFBD98",
-floor:"#FFF4B4",
-back:"#A8B5FF",
-desk:"#FFDD68",
-chair:"#FF85B7",
-cabinet:"#76E7CC",
-accent:"#FF639C",
-trim:"#9365E5",
-window:"#9AEAFF",
-plant:"#6FDD91",
-wood:"#FF9B72",
-glow:"#FF83D2"
+wall:"#FFBD98",floor:"#FFF4B4",
+back:"#A8B5FF",desk:"#FFDD68",
+chair:"#FF85B7",cabinet:"#76E7CC",
+accent:"#FF639C",trim:"#9365E5",
+window:"#9AEAFF",plant:"#6FDD91",
+wood:"#FF9B72",glow:"#FF83D2"
 },
 {
 name:"Rainbow Soda",
-wall:"#83DAFF",
-floor:"#FFE8B3",
-back:"#FF91C2",
-desk:"#FFDD59",
-chair:"#AA88FF",
-cabinet:"#80E8A6",
-accent:"#FF7A9F",
-trim:"#8256E7",
-window:"#B5F5FF",
-plant:"#5FD98F",
-wood:"#FFAA7C",
-glow:"#6EEBFF"
-},
-{
-name:"Strawberry Lemon",
-wall:"#FF92A9",
-floor:"#FFF3B3",
-back:"#A5E5FF",
-desk:"#FFE36A",
-chair:"#C29AFF",
-cabinet:"#86E8C0",
-accent:"#FF6E99",
-trim:"#9A68EC",
-window:"#B0F0FF",
-plant:"#65D78E",
-wood:"#FFB487",
-glow:"#FF70B6"
-},
-{
-name:"Cotton Candy",
-wall:"#FFAFE0",
-floor:"#FFF1CE",
-back:"#A4D4FF",
-desk:"#FFE87A",
-chair:"#B79BFF",
-cabinet:"#84EAD7",
-accent:"#FF7DBB",
-trim:"#946CE5",
-window:"#B6F1FF",
-plant:"#75D99B",
-wood:"#FFB998",
-glow:"#EE7BFF"
+wall:"#83DAFF",floor:"#FFE8B3",
+back:"#FF91C2",desk:"#FFDD59",
+chair:"#AA88FF",cabinet:"#80E8A6",
+accent:"#FF7A9F",trim:"#8256E7",
+window:"#B5F5FF",plant:"#5FD98F",
+wood:"#FFAA7C",glow:"#6EEBFF"
 }
 ];
 
@@ -333,8 +412,6 @@ let paletteIndex=-1;
 let currentPalette=palettes[0];
 
 function pickNewPalette(){
-if(palettes.length<2)return palettes[0];
-
 let next;
 do{
 next=Math.floor(Math.random()*palettes.length);
@@ -346,13 +423,13 @@ applyPalette(currentPalette);
 return currentPalette;
 }
 
-// ======================================
-// THREE.JS SCENE
-// ======================================
+// =======================================
+// THREE.JS
+// =======================================
 
 const scene=new THREE.Scene();
 scene.background=new THREE.Color("#FF94CA");
-scene.fog=new THREE.Fog("#FF94CA",23,45);
+scene.fog=new THREE.Fog("#FF94CA",24,48);
 
 const camera=new THREE.PerspectiveCamera(57,1,.1,100);
 const homeCamera=new THREE.Vector3(0,3.5,10);
@@ -398,52 +475,44 @@ sun.shadow.bias=-.001;
 scene.add(sun);
 
 const mat=(c,roughness=.42)=>new THREE.MeshStandardMaterial({
-color:c,
-roughness,
-metalness:.04
+color:c,roughness,metalness:.04
 });
-
-const lavender=mat("#B995FF");
-const cream=mat("#FFF5DB");
-const mint=mat("#7CE8B4");
-const pink=mat("#FF94CA");
-const peach=mat("#FFE064");
-const purple=mat("#A36CF4");
-const plum=mat("#7251B8");
-const sky=mat("#8DE8FF");
-const wood=mat("#FFA980");
-const leaf=mat("#5FDC8C");
 
 const wallMat=mat("#FF94CA");
 const floorMat=mat("#FFF0A6");
 const backMat=mat("#6DDBF5");
+const deskMat=mat("#FFE064");
+const chairMat=mat("#B18BFF");
+const cabinetMat=mat("#7CE8B4");
+const accentMat=mat("#FF6FAD");
 const trimMat=mat("#A36CF4");
+const windowMat=mat("#8DE8FF");
+const plantMat=mat("#5FDC8C");
+const woodMat=mat("#FFA980");
+const cream=mat("#FFF7E8");
+const dark=mat("#62428F");
 
 const colourMaterials={
 wall:wallMat,
 floor:floorMat,
 back:backMat,
-desk:peach,
-chair:pink,
-cabinet:mint,
-accent:lavender,
-trim:purple,
-window:sky,
-plant:leaf,
-wood:wood
+desk:deskMat,
+chair:chairMat,
+cabinet:cabinetMat,
+accent:accentMat,
+trim:trimMat,
+window:windowMat,
+plant:plantMat,
+wood:woodMat
 };
 
 const arcadeLights=[];
 
 function applyPalette(p){
 for(const [key,m] of Object.entries(colourMaterials)){
-if(p[key])m.color.set(p[key]);
+m.color.set(p[key]);
 }
-
-cream.color.set("#FFF7E8");
-plum.color.set(p.trim);
-trimMat.color.set(p.trim);
-
+dark.color.set(p.trim);
 scene.background.set(p.wall);
 scene.fog.color.set(p.wall);
 
@@ -451,8 +520,7 @@ for(const light of arcadeLights){
 light.color.set(p.glow);
 }
 
-sun.color.set("#FFF8ED");
-ambient.color.set("#FFFFFF");
+if(binBodyMat)binBodyMat.color.set(p.cabinet);
 }
 
 function mesh(g,m,x,y,z,parent=scene){
@@ -465,25 +533,32 @@ return o;
 }
 
 function cube(w,h,d,m,x,y,z,parent=scene){
-return mesh(new THREE.BoxGeometry(w,h,d),m,x,y,z,parent);
+return mesh(
+new THREE.BoxGeometry(w,h,d),
+m,x,y,z,parent
+);
 }
 
 function rounded(w,h,d,r,m,x,y,z,parent=scene){
-const shape=new THREE.Shape();
+r=Math.min(r,w*.45,h*.45,d*.45);
+
+const s=new THREE.Shape();
 const a=-w/2,b=-h/2;
 
-shape.moveTo(a+r,b);
-shape.lineTo(a+w-r,b);
-shape.quadraticCurveTo(a+w,b,a+w,b+r);
-shape.lineTo(a+w,b+h-r);
-shape.quadraticCurveTo(a+w,b+h,a+w-r,b+h);
-shape.lineTo(a+r,b+h);
-shape.quadraticCurveTo(a,b+h,a,b+h-r);
-shape.lineTo(a,b+r);
-shape.quadraticCurveTo(a,b,a+r,b);
+s.moveTo(a+r,b);
+s.lineTo(a+w-r,b);
+s.quadraticCurveTo(a+w,b,a+w,b+r);
+s.lineTo(a+w,b+h-r);
+s.quadraticCurveTo(a+w,b+h,a+w-r,b+h);
+s.lineTo(a+r,b+h);
+s.quadraticCurveTo(a,b+h,a,b+h-r);
+s.lineTo(a,b+r);
+s.quadraticCurveTo(a,b,a+r,b);
 
-const g=new THREE.ExtrudeGeometry(shape,{
-depth:d-2*r,
+const depth=Math.max(.001,d-2*r);
+
+const g=new THREE.ExtrudeGeometry(s,{
+depth,
 bevelEnabled:true,
 bevelThickness:r,
 bevelSize:r,
@@ -492,7 +567,7 @@ steps:1,
 curveSegments:5
 });
 
-g.translate(0,0,-(d-2*r)/2);
+g.translate(0,0,-depth/2);
 return mesh(g,m,x,y,z,parent);
 }
 
@@ -510,9 +585,9 @@ m,x,y,z,parent
 );
 }
 
-// ======================================
-// CANDY POP OFFICE ENVIRONMENT
-// ======================================
+// =======================================
+// COLLIDABLE OFFICE FURNITURE
+// =======================================
 
 const obstacles=[];
 
@@ -520,8 +595,40 @@ function solid(w,h,d,m,x,y,z,r=.08){
 const o=rounded(w,h,d,r,m,x,y,z);
 
 obstacles.push({
+type:"box",
 min:new THREE.Vector3(x-w/2,y-h/2,z-d/2),
-max:new THREE.Vector3(x+w/2,y+h/2,z+d/2)
+max:new THREE.Vector3(x+w/2,y+h/2,z+d/2),
+restitution:.83
+});
+
+return o;
+}
+
+function angledPanel(w,h,d,m,x,y,z,angle){
+const o=rounded(w,h,d,.09,m,x,y,z);
+o.rotation.y=angle;
+
+obstacles.push({
+type:"oriented",
+center:new THREE.Vector3(x,y,z),
+half:new THREE.Vector3(w/2,h/2,d/2),
+angle,
+restitution:.91
+});
+
+return o;
+}
+
+function ramp(w,d,m,x,y,z,slope){
+const o=rounded(w,.18,d,.06,m,x,y,z);
+o.rotation.x=slope;
+
+obstacles.push({
+type:"ramp",
+center:new THREE.Vector3(x,y,z),
+half:new THREE.Vector3(w/2,.09,d/2),
+angle:slope,
+restitution:.88
 });
 
 return o;
@@ -534,89 +641,155 @@ cube(.25,9,23,wallMat,6.5,4.5,-3);
 cube(13,9,.25,backMat,0,4.5,-14.5);
 cube(13,.18,23,cream,0,9,-3);
 
-// ARCADE TRIM
+// RETRO TRIM
 rounded(12.8,.3,.18,.06,trimMat,0,.16,-14.3);
 rounded(.18,.3,22.7,.06,trimMat,-6.32,.16,-3);
 rounded(.18,.3,22.7,.06,trimMat,6.32,.16,-3);
 
 // WINDOWS
 for(const x of [-3.4,3.4]){
-rounded(3.8,3.8,.15,.22,cream,x,5,-14.25);
-rounded(3.35,3.3,.12,.17,sky,x,5,-14.13);
-rounded(.12,3.45,.15,.05,cream,x,5,-14.03);
-rounded(3.5,.12,.15,.05,cream,x,5,-14.03);
-sphere(.22,pink,x-1.3,6.5,-13.97);
+rounded(3.8,3.8,.15,.06,cream,x,5,-14.25);
+rounded(3.35,3.3,.12,.04,windowMat,x,5,-14.13);
+rounded(.12,3.45,.15,.04,cream,x,5,-14.03);
+rounded(3.5,.12,.15,.04,cream,x,5,-14.03);
 }
 
-// CEILING LIGHTS
+// LIGHTS
 for(const z of [-10,-3,4]){
-rounded(2.5,.14,1.2,.06,cream,0,8.82,z);
+rounded(2.5,.14,1.2,.04,cream,0,8.82,z);
 
-const light=new THREE.PointLight("#FFF5E8",9,12);
+const light=new THREE.PointLight("#FFF5E8",8,12);
 light.position.set(0,8.3,z);
 scene.add(light);
 }
 
-// DESK
-solid(3.5,.32,2.25,peach,-3.85,1.55,-4.5,.14);
+// LEFT OFFICE DESK
+solid(3.5,.32,2.25,deskMat,-3.85,1.55,-4.5,.12);
 
 for(const x of [-5.2,-2.5]){
 for(const z of [-5.3,-3.7]){
-solid(.24,1.38,.24,wood,x,.75,z,.07);
+solid(.24,1.38,.24,woodMat,x,.75,z,.05);
 }
 }
 
-// COMPUTER
-solid(1.55,.99,.22,cream,-3.85,2.18,-4.95,.15);
-rounded(1.27,.73,.06,.08,sky,-3.85,2.2,-4.8);
-solid(.18,.28,.18,purple,-3.85,1.7,-4.95,.05);
-solid(1.28,.09,.5,mint,-3.85,1.74,-3.87,.04);
+// MONITOR: NOW A REAL BOUNCE SURFACE
+solid(1.55,1.05,.22,cream,-3.85,2.18,-4.95,.08);
+rounded(1.27,.73,.06,.025,windowMat,-3.85,2.2,-4.8);
+solid(.18,.28,.18,trimMat,-3.85,1.7,-4.95,.04);
+solid(1.28,.09,.5,cabinetMat,-3.85,1.74,-3.87,.025);
 
-// CHAIR
-solid(1.24,.28,1.2,pink,-3.8,1.03,-2.5,.13);
-solid(1.24,1.32,.3,pink,-3.8,1.6,-1.98,.14);
-solid(.2,.8,.2,purple,-3.8,.48,-2.5,.06);
+// OFFICE CHAIR
+solid(1.24,.28,1.2,chairMat,-3.8,1.03,-2.5,.09);
+solid(1.24,1.32,.3,chairMat,-3.8,1.6,-1.98,.09);
+solid(.2,.8,.2,trimMat,-3.8,.48,-2.5,.04);
 
-// FILING CABINET
-solid(1.55,2.7,1.25,mint,4.85,1.35,-7,.18);
+// RIGHT FILING CABINET
+solid(1.55,2.7,1.25,cabinetMat,4.85,1.35,-7,.12);
 
 for(let i=0;i<3;i++){
-rounded(1.18,.6,.08,.08,cream,4.85,.55+i*.81,-6.34);
-rounded(.47,.09,.07,.04,purple,4.85,.55+i*.81,-6.27);
+rounded(1.18,.6,.08,.025,cream,4.85,.55+i*.81,-6.34);
+rounded(.47,.09,.07,.02,trimMat,4.85,.55+i*.81,-6.27);
 }
 
-// SHELVES
+// BOOKSHELVES
 for(const y of [2.5,4,5.5]){
-solid(2.3,.18,.73,peach,5.15,y,-11.3,.07);
+solid(2.3,.18,.73,deskMat,5.15,y,-11.3,.04);
 }
 
 for(const x of [4.2,6.08]){
-solid(.17,3.4,.72,wood,x,4,-11.3,.06);
+solid(.17,3.4,.72,woodMat,x,4,-11.3,.04);
 }
 
 for(let i=0;i<7;i++){
-const c=[pink,mint,sky,cream][i%4];
-rounded(.18,.55,.37,.05,c,4.4+i*.22,2.87,-11.3);
+rounded(
+.18,.55,.37,.04,
+[i%3===0?chairMat:i%3===1?cabinetMat:windowMat][0],
+4.4+i*.22,2.87,-11.3
+);
 }
 
-// PLANT
-cyl(.5,.36,.75,peach,-5.25,.38,-11.5);
-sphere(.63,leaf,-5.25,1.25,-11.5);
-sphere(.48,leaf,-5.62,1.42,-11.5);
-sphere(.47,mint,-4.9,1.52,-11.5);
+// OFFICE PLANT
+cyl(.5,.36,.75,deskMat,-5.25,.38,-11.5);
+sphere(.63,plantMat,-5.25,1.25,-11.5);
+sphere(.48,plantMat,-5.62,1.42,-11.5);
+sphere(.47,cabinetMat,-4.9,1.52,-11.5);
+
+// =======================================
+// NEW V0.9.7 TRICK-SHOT OBJECTS
+// =======================================
+
+// RIGHT SIDE DESK: REBOUND SURFACE
+solid(2.6,.25,1.8,deskMat,3.75,1.25,-3.6,.09);
+
+for(const x of [2.7,4.8]){
+for(const z of [-4.3,-2.9]){
+solid(.18,1.1,.18,woodMat,x,.6,z,.04);
+}
+}
+
+// RIGHT DESK MONITOR
+solid(1.15,.82,.18,cream,3.7,1.8,-4.1,.06);
+rounded(.95,.59,.06,.02,windowMat,3.7,1.82,-3.98);
+
+// LEFT SMALL STORAGE CABINET
+solid(1.2,1.15,1.05,cabinetMat,-5.1,.58,-8.4,.1);
+
+// STACKED BOXES
+solid(.85,.7,.85,chairMat,4.65,.35,-9.6,.07);
+solid(.7,.65,.7,accentMat,4.65,1.02,-9.6,.07);
+
+// SMALL REBOUND TABLE
+solid(1.65,.2,1.2,deskMat,-3.25,.9,-9.2,.07);
+solid(.17,.8,.17,woodMat,-3.8,.42,-9.5,.04);
+solid(.17,.8,.17,woodMat,-2.7,.42,-9.5,.04);
+
+// LEFT ANGLED BANK-SHOT PANEL
+angledPanel(
+1.45,1.55,.18,
+accentMat,
+-4.8,1.65,-6.9,
+-.55
+);
+
+// RIGHT ANGLED BANK-SHOT PANEL
+angledPanel(
+1.45,1.55,.18,
+chairMat,
+4.1,1.65,-5.9,
+.55
+);
+
+// SHORT FLOOR RAMP ON THE LEFT
+ramp(
+1.65,1.9,
+cabinetMat,
+-2.5,.45,-6.4,
+-.32
+);
+
+// SHORT FLOOR RAMP ON THE RIGHT
+ramp(
+1.65,1.9,
+accentMat,
+2.6,.45,-8.8,
+.32
+);
+
+// ADDITIONAL OFFICE PROPS
+solid(.7,.35,.55,cream,-3.1,1.9,-4.1,.04);
+solid(.5,.2,.4,chairMat,3.05,1.5,-3.1,.04);
 
 // WALL ART
-rounded(1.55,1.25,.1,.15,cream,-6.24,4,-7.5);
-rounded(1.15,.83,.1,.1,pink,-6.14,4,-7.5);
-rounded(1.65,1.1,.12,.15,cream,6.22,4.5,-3);
-sphere(.32,peach,6.1,4.5,-3);
+rounded(1.55,1.25,.1,.04,cream,-6.24,4,-7.5);
+rounded(1.15,.83,.1,.03,accentMat,-6.14,4,-7.5);
+rounded(1.65,1.1,.12,.04,cream,6.22,4.5,-3);
 
-// CANDY COLOURED RUG
-rounded(3.1,.035,2.6,.015,lavender,2.2,.035,2.2);
+// RUG
+rounded(3.1,.035,2.6,.012,chairMat,2.2,.035,2.2);
 
-// RETRO ARCADE NEON ACCENTS
+// NEON ARCADE ACCENTS
 for(const x of [-5.95,5.95]){
-const neon=rounded(.09,2.5,.09,.025,purple,x,5,-10.5);
+rounded(.09,2.5,.09,.02,trimMat,x,5,-10.5);
 
 const glow=new THREE.PointLight("#FF5DB9",1.1,5);
 glow.position.set(x,5,-10.5);
@@ -624,139 +797,62 @@ scene.add(glow);
 arcadeLights.push(glow);
 }
 
-// ======================================
-// TARGETS
-// ======================================
+// =======================================
+// MAIN TARGET: OFFICE WASTEPAPER BIN
+// =======================================
 
 const targetGroup=new THREE.Group();
 targetGroup.position.set(0,0,-8);
 scene.add(targetGroup);
 
+const BIN_RADIUS=.9;
+const BIN_HEIGHT=1.35;
+
+let binBodyMat=new THREE.MeshStandardMaterial({
+color:currentPalette.cabinet,
+roughness:.38,
+side:THREE.DoubleSide
+});
+
 function targetMesh(g,m,x,y,z){
 return mesh(g,m,x,y,z,targetGroup);
 }
 
-function clearTarget(){
-while(targetGroup.children.length){
-const o=targetGroup.children[0];
-targetGroup.remove(o);
-
-o.traverse(child=>{
-if(child.geometry)child.geometry.dispose();
-
-if(child.material){
-const arr=Array.isArray(child.material)?
-child.material:[child.material];
-
-arr.forEach(m=>{
-if(!Object.values(colourMaterials).includes(m) &&
-m!==cream && m!==plum){
-m.dispose();
-}
-});
-}
-});
-}
-}
-
-function ring(radius,tube,y,m){
-const o=targetMesh(
-new THREE.TorusGeometry(radius,tube,12,48),
-m,0,y,0
-);
-o.rotation.x=Math.PI/2;
-return o;
-}
-
 function makeBin(){
 targetMesh(
-new THREE.CylinderGeometry(.85,.7,1.35,40,1,true),
-new THREE.MeshStandardMaterial({
-color:currentPalette.cabinet,
-roughness:.38,
-side:THREE.DoubleSide
-}),
-0,.675,0
+new THREE.CylinderGeometry(
+BIN_RADIUS,.72,BIN_HEIGHT,40,1,true
+),
+binBodyMat,
+0,BIN_HEIGHT/2,0
 );
 
 targetMesh(
-new THREE.CylinderGeometry(.7,.7,.08,40),
-plum,0,.045,0
+new THREE.CylinderGeometry(.72,.72,.07,40),
+dark,0,.035,0
 );
 
-ring(.85,.095,1.35,cream);
-sphere(.1,pink,.65,.35,.45,targetGroup);
-}
-
-function makeBucket(){
-targetMesh(
-new THREE.CylinderGeometry(1.1,.83,1.15,40,1,true),
-new THREE.MeshStandardMaterial({
-color:currentPalette.accent,
-roughness:.4,
-side:THREE.DoubleSide
-}),
-0,.575,0
+const rim=targetMesh(
+new THREE.TorusGeometry(BIN_RADIUS,.095,12,48),
+cream,0,BIN_HEIGHT,0
 );
+rim.rotation.x=Math.PI/2;
 
-targetMesh(
-new THREE.CylinderGeometry(.83,.83,.08,40),
-wood,0,.04,0
+// DECORATIVE BIN LABEL
+rounded(
+.72,.35,.06,.02,
+accentMat,
+0,.7,.76,
+targetGroup
 );
-
-ring(1.1,.1,1.15,cream);
 }
 
-function makeHoop(){
-rounded(.18,3.5,.18,.06,purple,0,1.75,-.9,targetGroup);
-rounded(2.6,1.6,.14,.16,cream,0,3.25,-.9,targetGroup);
-ring(.72,.095,2.6,peach);
+// Bin is the only target in this environment.
+makeBin();
 
-const netMat=new THREE.LineBasicMaterial({
-color:"#FFFFFF"
-});
-
-for(let i=0;i<12;i++){
-const a=i*Math.PI*2/12;
-const b=a+.3;
-
-targetGroup.add(new THREE.Line(
-new THREE.BufferGeometry().setFromPoints([
-new THREE.Vector3(Math.cos(a)*.7,2.56,Math.sin(a)*.7),
-new THREE.Vector3(Math.cos(b)*.48,1.98,Math.sin(b)*.48)
-]),
-netMat
-));
-}
-}
-
-function makeRing(){
-ring(.8,.13,1.8,pink);
-rounded(.14,1.8,.14,.05,purple,0,.9,0,targetGroup);
-}
-
-function activeTarget(){
-return targets.find(t=>t.id===selectedTarget)||targets[0];
-}
-
-function activeChallenge(){
-return challenges.find(c=>c.id===challengeId)||null;
-}
-
-function rebuildTarget(){
-clearTarget();
-
-if(selectedTarget==="bin")makeBin();
-if(selectedTarget==="bucket")makeBucket();
-if(selectedTarget==="hoop")makeHoop();
-if(selectedTarget==="ring")makeRing();
-
-updateLabel();
-}
-
-// ======================================
-// BALL
-// ======================================
+// =======================================
+// BALL AND AIMING GUIDE
+// =======================================
 
 const ballMaterial=new THREE.MeshStandardMaterial({
 color:"#73FAFF",
@@ -799,15 +895,34 @@ const trail=new THREE.Line(trailGeometry,trailMaterial);
 scene.add(trail);
 trail.visible=false;
 
+// AIM GUIDE
+const aimMaterial=new THREE.LineDashedMaterial({
+color:"#FFFFFF",
+dashSize:.22,
+gapSize:.15,
+transparent:true,
+opacity:.72
+});
+
+const aimGuide=new THREE.Line(
+new THREE.BufferGeometry(),
+aimMaterial
+);
+
+scene.add(aimGuide);
+aimGuide.visible=false;
+
 let squash=0;
 
 function impact(strength){
-squash=Math.max(squash,Math.min(.22,strength*.025));
+squash=Math.max(
+squash,
+Math.min(.22,strength*.025)
+);
 }
 
 function updateSkin(){
 const s=skins.find(x=>x.id===equipped)||skins[0];
-
 ballMaterial.color.set(s.color);
 ballMaterial.emissive.set(s.glow);
 ballLight.color.set(s.glow);
@@ -824,15 +939,17 @@ ballLight.position.copy(RELEASE);
 shadow.visible=true;
 trailPoints.length=0;
 trail.visible=false;
+aimGuide.visible=false;
 updateSkin();
 }
 
-// ======================================
-// UI
-// ======================================
+// =======================================
+// UI HELPERS
+// =======================================
 
 function showPower(p){
 clearTimeout(powerTimer);
+
 $("power").textContent=
 "SHOT POWER: "+Math.round(p*100)+"%";
 
@@ -865,8 +982,10 @@ id==="playing"&&gameMode==="challenge"?"block":"none";
 $("message").style.display=id==="playing"?"block":"none";
 $("hint").style.display=id==="playing"?"block":"none";
 $("power").style.display=id==="playing"?"block":"none";
-$("pause").style.display=id==="playing"&&!over?"block":"none";
-$("again").style.display=id==="playing"&&over?"block":"none";
+$("pause").style.display=
+id==="playing"&&!over?"block":"none";
+$("again").style.display=
+id==="playing"&&over?"block":"none";
 
 if(id==="menu"){
 $("menuStats").textContent=
@@ -887,14 +1006,17 @@ $("best").textContent="Best: "+best;
 $("banks").textContent="Banks: "+banks;
 }
 
+function activeChallenge(){
+return challenges.find(c=>c.id===challengeId)||null;
+}
+
 function updateLabel(){
 const c=activeChallenge();
 
 $("modeLabel").textContent=
-(gameMode==="endless"?
-"🍬 "+currentPalette.name+" · ":
-"🎯 "+(c?c.name+" · ":""))+
-activeTarget().icon+" "+activeTarget().name;
+gameMode==="endless"?
+"🏢 OFFICE · ROUND "+round+" · "+currentPalette.name:
+"🎯 "+(c?.name||"Office Challenge");
 }
 
 function message(t,duration=0){
@@ -916,8 +1038,12 @@ const c=activeChallenge();
 if(!c||gameMode!=="challenge")return;
 
 const remaining=c.limit?
-Math.max(0,Math.ceil(c.limit-
-(performance.now()-challengeStart)/1000)):null;
+Math.max(
+0,
+Math.ceil(
+c.limit-(performance.now()-challengeStart)/1000
+)
+):null;
 
 $("challengeGoal").textContent=
 c.desc+" · "+challengeCount+"/"+c.need+
@@ -947,9 +1073,9 @@ o.stop(audioCtx.currentTime+.13);
 }catch(e){}
 }
 
-// ======================================
+// =======================================
 // GAME FLOW
-// ======================================
+// =======================================
 
 function startGame(mode,id=null){
 session++;
@@ -959,10 +1085,7 @@ hidePower();
 
 gameMode=mode;
 challengeId=mode==="challenge"?id:null;
-selectedTarget=mode==="endless"?
-"bin":(activeChallenge()?.target||"bin");
-
-targetIndex=0;
+round=1;
 targetPhase=0;
 score=0;
 misses=0;
@@ -975,11 +1098,10 @@ locked=false;
 over=false;
 touchStart=null;
 
-// NEW GAME = NEW COLOUR PALETTE
+// COLOURS CHANGE ONLY WHEN STARTING A GAME
 pickNewPalette();
 
 targetGroup.position.x=0;
-rebuildTarget();
 resetBall();
 
 camera.position.copy(homeCamera);
@@ -987,11 +1109,12 @@ cameraLook.copy(homeLook);
 camera.lookAt(cameraLook);
 
 $("hint").textContent=
-"Swipe UP · Bounce off walls for trick shots!";
+"Swipe UP · Aim left or right for bank shots!";
 $("again").textContent="PLAY AGAIN";
 
 updateHUD();
 updateGoal();
+updateLabel();
 showScreen("playing");
 
 message("🍬 "+currentPalette.name.toUpperCase()+"!",1300);
@@ -1046,8 +1169,11 @@ if(hit){
 combo++;
 
 const bank=shot.bankHits>0;
+
 const points=
-10*Math.min(combo,3)+(perfect?20:0)+(bank?15:0);
+10*Math.min(combo,3)+
+(perfect?20:0)+
+(bank?15:0);
 
 score+=points;
 coins+=5+(perfect?5:0);
@@ -1062,8 +1188,11 @@ challengeStreak++;
 if(c){
 if(c.goal==="streak"){
 challengeCount=challengeStreak;
-}else if(c.goal==="hits"||
-(c.goal==="perfect"&&perfect)){
+}else if(c.goal==="hits"){
+challengeCount++;
+}else if(c.goal==="perfect"&&perfect){
+challengeCount++;
+}else if(c.goal==="banks"&&bank){
 challengeCount++;
 }
 }
@@ -1091,7 +1220,7 @@ challengeCount=0;
 updateGoal();
 }
 
-// MISSED SHOT: COLOURS STAY THE SAME
+// NO COLOUR CHANGE FOR MISSES
 message("MISSED!");
 beep(220);
 }
@@ -1120,21 +1249,19 @@ return;
 
 locked=false;
 
-if(hit&&gameMode==="endless"){
-targetIndex=(targetIndex+1)%targets.length;
-selectedTarget=targets[targetIndex].id;
-
-// NEW TARGET = NEW COLOUR PALETTE
+// SUCCESSFUL SHOTS KEEP THE SAME COLOURS.
+// Every 3 successful shots advances the office round.
+if(hit&&gameMode==="endless"&&score>0){
+const totalHits=successfulShots;
+if(totalHits>0&&totalHits%3===0){
+round++;
 pickNewPalette();
-rebuildTarget();
-
-message(
-"🌈 NEXT: "+activeTarget().name.toUpperCase(),
-1100
-);
-
+updateLabel();
+message("🌈 OFFICE ROUND "+round,1100);
 }else{
-// SAME TARGET = KEEP EXISTING COLOURS
+message("SHOOT AGAIN!",600);
+}
+}else{
 message("SHOOT AGAIN!",600);
 }
 
@@ -1144,9 +1271,11 @@ updateHUD();
 },1200);
 }
 
-// ======================================
+let successfulShots=0;
+
+// =======================================
 // ORIGINAL V0.9.3 SWIPE SENSITIVITY
-// ======================================
+// =======================================
 
 function swipeToPower(swipeDistance){
 const normalized=clamp(
@@ -1165,26 +1294,34 @@ return .40+(normalized-.25)*.40;
 return .60+((normalized-.75)/.25)*.40;
 }
 
-function launchBall(dx,dy){
+function makeVelocity(dx,dy){
 const power=swipeToPower(Math.max(0,-dy));
 const sideways=clamp(dx/(innerWidth*.3),-1,1);
-const t=activeTarget();
 const flightTime=1.52+power*.42;
 const distanceFactor=.68+power*.64;
 
 const verticalSpeed=
-(t.rim+.25-RELEASE.y+
+(BIN_HEIGHT+.25-RELEASE.y+
 .5*G*flightTime*flightTime)/flightTime;
 
-shot={
+return {
+power,
 velocity:new THREE.Vector3(
 sideways*2.6,
 verticalSpeed,
 -12*distanceFactor/flightTime
-),
+)
+};
+}
+
+function launchBall(dx,dy){
+const result=makeVelocity(dx,dy);
+
+shot={
+velocity:result.velocity,
 age:0,
 done:false,
-power,
+power:result.power,
 bankHits:0,
 contacts:0,
 rimCooldown:0,
@@ -1197,7 +1334,9 @@ groundTime:0
 ballMesh.position.copy(RELEASE);
 trailPoints.length=0;
 trail.visible=effectsOn;
-showPower(power);
+aimGuide.visible=false;
+
+showPower(result.power);
 message("");
 beep(480);
 }
@@ -1207,11 +1346,45 @@ const canvas=$("game");
 canvas.addEventListener("pointerdown",e=>{
 if(screen!=="playing"||over||locked||shot)return;
 
-touchStart={x:e.clientX,y:e.clientY};
+touchStart={
+x:e.clientX,
+y:e.clientY
+};
 
 try{
 canvas.setPointerCapture(e.pointerId);
 }catch(err){}
+});
+
+canvas.addEventListener("pointermove",e=>{
+if(!touchStart||screen!=="playing"||
+over||locked||shot)return;
+
+const dx=e.clientX-touchStart.x;
+const dy=e.clientY-touchStart.y;
+
+if(dy>=-15){
+aimGuide.visible=false;
+return;
+}
+
+const result=makeVelocity(dx,dy);
+const points=[];
+const v=result.velocity;
+
+for(let t=0;t<=1.15;t+=.08){
+points.push(new THREE.Vector3(
+RELEASE.x+v.x*t,
+RELEASE.y+v.y*t-.5*G*t*t,
+RELEASE.z+v.z*t
+));
+}
+
+aimGuide.geometry.dispose();
+aimGuide.geometry=
+new THREE.BufferGeometry().setFromPoints(points);
+aimGuide.computeLineDistances();
+aimGuide.visible=true;
 });
 
 canvas.addEventListener("pointerup",e=>{
@@ -1220,7 +1393,9 @@ over||locked||shot)return;
 
 const dx=e.clientX-touchStart.x;
 const dy=e.clientY-touchStart.y;
+
 touchStart=null;
+aimGuide.visible=false;
 
 if(dy>=-20)return;
 launchBall(dx,dy);
@@ -1228,11 +1403,12 @@ launchBall(dx,dy);
 
 canvas.addEventListener("pointercancel",()=>{
 touchStart=null;
+aimGuide.visible=false;
 });
 
-// ======================================
-// STRONG BOUNCING PHYSICS
-// ======================================
+// =======================================
+// COLLISION PHYSICS
+// =======================================
 
 const AXES={
 left:new THREE.Vector3(1,0,0),
@@ -1250,7 +1426,10 @@ const v=shot.velocity;
 const speed=v.dot(normal);
 
 if(speed<-.01){
-v.addScaledVector(normal,-(1+restitution)*speed);
+v.addScaledVector(
+normal,
+-(1+restitution)*speed
+);
 shot.contacts++;
 impact(-speed);
 return true;
@@ -1310,12 +1489,8 @@ shot.groundTime=0;
 }
 }
 
-function collideFurniture(){
-if(!shot)return;
-
-const p=ballMesh.position;
-
-for(const b of obstacles){
+// Sphere vs axis-aligned box
+function collideAABB(p,b){
 const nearest=new THREE.Vector3(
 clamp(p.x,b.min.x,b.max.x),
 clamp(p.y,b.min.y,b.max.y),
@@ -1325,7 +1500,7 @@ clamp(p.z,b.min.z,b.max.z)
 const diff=p.clone().sub(nearest);
 const dist2=diff.lengthSq();
 
-if(dist2>=R*R)continue;
+if(dist2>=R*R)return;
 
 let normal,penetration;
 
@@ -1350,61 +1525,148 @@ penetration=R+faces[0].d;
 
 p.addScaledVector(normal,penetration+.001);
 
-if(bounce(normal,.82))shot.bankHits++;
+if(bounce(normal,b.restitution)){
+shot.bankHits++;
 }
 }
 
-function collideTarget(previous){
+// Sphere vs rotated furniture / ramps
+function collideRotated(p,b){
+const local=p.clone().sub(b.center);
+
+if(b.type==="oriented"){
+local.applyAxisAngle(
+new THREE.Vector3(0,1,0),
+-b.angle
+);
+}else{
+local.applyAxisAngle(
+new THREE.Vector3(1,0,0),
+-b.angle
+);
+}
+
+const nearest=new THREE.Vector3(
+clamp(local.x,-b.half.x,b.half.x),
+clamp(local.y,-b.half.y,b.half.y),
+clamp(local.z,-b.half.z,b.half.z)
+);
+
+const diff=local.clone().sub(nearest);
+const d2=diff.lengthSq();
+
+if(d2>=R*R)return;
+
+let normal,penetration;
+
+if(d2>1e-10){
+const d=Math.sqrt(d2);
+normal=diff.multiplyScalar(1/d);
+penetration=R-d;
+}else{
+const faces=[
+{d:b.half.x-Math.abs(local.x),axis:0},
+{d:b.half.y-Math.abs(local.y),axis:1},
+{d:b.half.z-Math.abs(local.z),axis:2}
+];
+
+faces.sort((a,b)=>a.d-b.d);
+
+normal=new THREE.Vector3();
+normal.setComponent(
+faces[0].axis,
+Math.sign(local.getComponent(faces[0].axis))||1
+);
+
+penetration=R+faces[0].d;
+}
+
+if(b.type==="oriented"){
+normal.applyAxisAngle(
+new THREE.Vector3(0,1,0),
+b.angle
+);
+}else{
+normal.applyAxisAngle(
+new THREE.Vector3(1,0,0),
+b.angle
+);
+}
+
+p.addScaledVector(normal,penetration+.001);
+
+if(bounce(normal,b.restitution)){
+shot.bankHits++;
+}
+}
+
+function collideFurniture(){
+if(!shot)return;
+
+const p=ballMesh.position;
+
+for(const b of obstacles){
+if(b.type==="box"){
+collideAABB(p,b);
+}else{
+collideRotated(p,b);
+}
+}
+}
+
+function collideBin(previous){
 if(!shot||shot.scoring)return;
 
-const t=activeTarget();
 const p=ballMesh.position;
 const cx=targetGroup.position.x;
 const cz=targetGroup.position.z;
+
 const dx=p.x-cx;
 const dz=p.z-cz;
 const horizontal=Math.hypot(dx,dz);
 
-if(previous.y>=t.rim&&
-p.y<t.rim&&shot.velocity.y<0){
+// Score only when the ball enters the bin
+// through the top while travelling down.
+if(previous.y>=BIN_HEIGHT&&
+p.y<BIN_HEIGHT&&shot.velocity.y<0){
 
 const f=clamp(
-(previous.y-t.rim)/(previous.y-p.y),
+(previous.y-BIN_HEIGHT)/
+(previous.y-p.y),
 0,1
 );
 
 const x=previous.x+(p.x-previous.x)*f;
 const z=previous.z+(p.z-previous.z)*f;
+
 const distance=Math.hypot(x-cx,z-cz);
-const clearance=t.radius-R-.065;
+const clearance=BIN_RADIUS-R-.06;
 
 if(distance<clearance){
 shot.scoring=true;
 shot.scoreDelay=0;
-shot.perfect=distance<t.radius*.3;
+shot.perfect=distance<BIN_RADIUS*.3;
 shot.velocity.x*=.18;
 shot.velocity.z*=.18;
 return;
 }
 }
 
-// RIM COLLISIONS
+// BIN RIM
 const ringDistance=Math.hypot(
-horizontal-t.radius,
-p.y-t.rim
+horizontal-BIN_RADIUS,
+p.y-BIN_HEIGHT
 );
 
-if(ringDistance<R+.09&&shot.rimCooldown<=0){
+if(ringDistance<R+.095&&shot.rimCooldown<=0){
 const radial=new THREE.Vector3(
-dx/(horizontal||1),
-0,
-dz/(horizontal||1)
+dx/(horizontal||1),0,dz/(horizontal||1)
 );
 
 const normal=new THREE.Vector3(
-radial.x*(horizontal-t.radius),
-p.y-t.rim,
-radial.z*(horizontal-t.radius)
+radial.x*(horizontal-BIN_RADIUS),
+p.y-BIN_HEIGHT,
+radial.z*(horizontal-BIN_RADIUS)
 ).normalize();
 
 if(normal.lengthSq()<.01){
@@ -1418,12 +1680,12 @@ beep(370);
 }
 }
 
-// BIN AND BUCKET WALLS
-if(t.id==="bin"||t.id==="bucket"){
-if(p.y>R&&p.y<t.rim-R*.25&&
-Math.abs(horizontal-t.radius)<R){
+// BIN WALLS
+if(p.y>R&&
+p.y<BIN_HEIGHT-R*.25&&
+Math.abs(horizontal-BIN_RADIUS)<R){
 
-const inside=horizontal<t.radius;
+const inside=horizontal<BIN_RADIUS;
 
 const radial=new THREE.Vector3(
 dx/(horizontal||1),
@@ -1434,41 +1696,36 @@ dz/(horizontal||1)
 const normal=inside?
 radial.clone().negate():radial;
 
-p.x=cx+radial.x*(t.radius+(inside?-R:R));
-p.z=cz+radial.z*(t.radius+(inside?-R:R));
+p.x=cx+radial.x*(
+BIN_RADIUS+(inside?-R:R)
+);
+
+p.z=cz+radial.z*(
+BIN_RADIUS+(inside?-R:R)
+);
 
 bounce(normal,.72);
-}
-}
-
-// BASKETBALL BACKBOARD
-if(t.id==="hoop"){
-const boardZ=cz-.9;
-
-if(previous.z-R>=boardZ&&
-p.z-R<boardZ&&
-Math.abs(p.x-cx)<1.45&&
-p.y>2.4&&p.y<4.1){
-
-p.z=boardZ+R;
-if(bounce(AXES.back,.82))shot.bankHits++;
-}
 }
 }
 
 function updatePhysics(dt){
 if(!shot||shot.done)return;
 
-const steps=Math.max(1,Math.ceil(dt/(1/120)));
+const steps=Math.max(
+1,
+Math.ceil(dt/(1/180))
+);
+
 const step=dt/steps;
 
 for(let i=0;i<steps;i++){
 if(!shot||shot.done)return;
 
 shot.age+=step;
-shot.rimCooldown=Math.max(0,shot.rimCooldown-step);
+shot.rimCooldown=Math.max(
+0,shot.rimCooldown-step
+);
 
-// LET THE BALL FALL INSIDE BEFORE SCORING
 if(shot.scoring){
 shot.scoreDelay+=step;
 shot.velocity.y-=G*step;
@@ -1477,9 +1734,11 @@ ballMesh.position.addScaledVector(
 shot.velocity,step
 );
 
-ballMesh.rotation.x+=shot.velocity.z*step*.3;
+ballMesh.rotation.x+=
+shot.velocity.z*step*.3;
 
 if(shot.scoreDelay>.36){
+successfulShots++;
 finish(true,shot.perfect);
 return;
 }
@@ -1494,12 +1753,15 @@ ballMesh.position.addScaledVector(
 shot.velocity,step
 );
 
-ballMesh.rotation.x+=shot.velocity.z*step*.45;
-ballMesh.rotation.z-=shot.velocity.x*step*.45;
+ballMesh.rotation.x+=
+shot.velocity.z*step*.45;
+
+ballMesh.rotation.z-=
+shot.velocity.x*step*.45;
 
 collideRoom(step);
 collideFurniture();
-collideTarget(previous);
+collideBin(previous);
 
 if(!shot||shot.done)return;
 
@@ -1526,16 +1788,18 @@ shadow.material.opacity=clamp(
 if(effectsOn&&shot&&!shot.done){
 trailPoints.push(ballMesh.position.clone());
 
-if(trailPoints.length>30)trailPoints.shift();
+if(trailPoints.length>30){
+trailPoints.shift();
+}
 
 trailGeometry.setFromPoints(trailPoints);
 trail.visible=trailPoints.length>1;
 }
 }
 
-// ======================================
-// SMOOTH FOLLOW CAMERA
-// ======================================
+// =======================================
+// CAMERA
+// =======================================
 
 function updateCamera(dt){
 const desired=homeCamera.clone();
@@ -1547,6 +1811,7 @@ const p=ballMesh.position;
 desired.x=clamp(p.x*.15,-1.1,1.1);
 desired.y=homeCamera.y+
 clamp((p.y-1.25)*.11,0,.9);
+
 desired.z=homeCamera.z-
 clamp((4-p.z)*.07,0,1.15);
 
@@ -1569,7 +1834,7 @@ targetPhase+=dt;
 
 const c=activeChallenge();
 const moving=gameMode==="challenge"?
-!!c?.moving:targetIndex>=3;
+!!c?.moving:false;
 
 targetGroup.position.x=moving?
 Math.sin(targetPhase*1.2)*1.3:0;
@@ -1585,7 +1850,6 @@ return;
 }
 
 if(!over)updatePhysics(dt);
-
 updateCamera(dt);
 
 squash=Math.max(0,squash-dt*1.8);
@@ -1597,9 +1861,9 @@ ballMesh.scale.set(
 );
 }
 
-// ======================================
+// =======================================
 // CHALLENGES
-// ======================================
+// =======================================
 
 function renderChallenges(){
 const list=$("challengeList");
@@ -1608,7 +1872,8 @@ list.innerHTML="";
 $("challengeProgress").textContent=
 "Completed "+
 challenges.filter(c=>completed.includes(c.id)).length+
-" / "+challenges.length+" · One-time rewards";
+" / "+challenges.length+
+" · One-time rewards";
 
 for(const tier of ["Rookie","Skilled","Expert","Legend"]){
 const h=document.createElement("h3");
@@ -1644,12 +1909,14 @@ desc.textContent=c.desc;
 
 const meta=document.createElement("div");
 meta.className="meta";
+
 meta.textContent=
 "🪙 "+c.reward+" coins"+
 (c.limit?" · "+c.limit+" sec":"")+
 (c.moving?" · Moving target":"");
 
 const btn=document.createElement("button");
+
 btn.textContent=done?
 "REPLAY (NO REWARD)":
 unlocked?"START CHALLENGE":"LOCKED";
@@ -1663,9 +1930,9 @@ list.appendChild(card);
 }
 }
 
-// ======================================
-// BALL SHOP
-// ======================================
+// =======================================
+// SHOP
+// =======================================
 
 function renderShop(){
 $("shopCoins").textContent="🪙 Your coins: "+coins;
@@ -1695,7 +1962,6 @@ const btn=document.createElement("button");
 if(equipped===s.id){
 btn.textContent="✓ EQUIPPED";
 btn.disabled=true;
-
 }else if(owned.includes(s.id)){
 btn.textContent="EQUIP";
 
@@ -1705,7 +1971,6 @@ updateSkin();
 save();
 renderShop();
 };
-
 }else{
 btn.textContent="BUY — "+s.price+" COINS";
 btn.disabled=coins<s.price;
@@ -1728,16 +1993,19 @@ list.appendChild(card);
 }
 }
 
-// ======================================
-// SETTINGS AND BUTTONS
-// ======================================
+// =======================================
+// SETTINGS
+// =======================================
 
 function renderSettings(){
 $("soundToggle").textContent=soundOn?"ON":"OFF";
 $("effectsToggle").textContent=effectsOn?"ON":"OFF";
 }
 
-$("endlessBtn").onclick=()=>startGame("endless");
+$("endlessBtn").onclick=()=>{
+successfulShots=0;
+startGame("endless");
+};
 
 $("challengeBtn").onclick=()=>showScreen("challenges");
 $("challengeBack").onclick=()=>showScreen("menu");
@@ -1768,6 +2036,7 @@ clearTimeout(messageTimer);
 hidePower();
 shot=null;
 locked=false;
+aimGuide.visible=false;
 showScreen("menu");
 };
 
@@ -1776,13 +2045,14 @@ if(gameMode==="challenge"&&
 completed.includes(challengeId)){
 showScreen("challenges");
 }else{
+successfulShots=0;
 startGame(gameMode,challengeId);
 }
 };
 
-// ======================================
+// =======================================
 // GAME LOOP
-// ======================================
+// =======================================
 
 const clock=new THREE.Clock();
 
@@ -1795,7 +2065,6 @@ update(dt);
 renderer.render(scene,camera);
 }
 
-rebuildTarget();
 resetBall();
 updateHUD();
 showScreen("menu");
