@@ -4,19 +4,19 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
-<meta name="theme-color" content="#ff88c9">
-<title>Flick Frenzy V0.9.10</title>
+<meta name="theme-color" content="#ff8acb">
+<title>Flick Frenzy V0.9.11</title>
 <style>
 *{box-sizing:border-box}
 html,body{margin:0;width:100%;height:100%;overflow:hidden}
-body{background:#583a87;color:#fff;font-family:system-ui,Arial;touch-action:none;user-select:none}
+body{background:#53357d;color:#fff;font-family:system-ui,Arial;touch-action:none;user-select:none}
 canvas{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none}
-.screen{position:absolute;inset:0;z-index:5;display:none;align-items:center;justify-content:center;padding:15px;background:linear-gradient(140deg,#ff87c8,#a58aff 55%,#6ce7e5)}
+.screen{position:absolute;inset:0;z-index:5;display:none;align-items:center;justify-content:center;padding:14px;background:linear-gradient(145deg,#ff89c9,#a38bff 55%,#6be9e4)}
 .screen.active{display:flex}
 .panel{width:100%;max-width:430px;max-height:89dvh;overflow:auto;touch-action:pan-y;text-align:center;background:#39265ff5;border:2px solid #ffc5e8;border-radius:24px;padding:22px 17px;box-shadow:0 15px 45px #24123b88}
 h1{font-size:42px;line-height:1.03;color:#ffe878;text-shadow:0 4px #e958a0;margin:12px 0}
 h2{color:#ffe878}
-h3{color:#ffbfdf}
+h3{color:#ffc6e6}
 p{color:#f6eaff}
 button{border:0;border-radius:14px;padding:13px;font-size:15px;font-weight:850;background:#ffe46e;color:#34204f;cursor:pointer}
 button:disabled{opacity:.45}
@@ -31,13 +31,13 @@ button:disabled{opacity:.45}
 #hud{position:absolute;z-index:2;top:calc(env(safe-area-inset-top) + 8px);width:100%;padding:0 8px;display:none;grid-template-columns:repeat(3,1fr);gap:5px;pointer-events:none}
 .stat{background:#332354e6;border:1px solid #ffffff88;border-radius:12px;padding:8px 2px;text-align:center;font-size:12px;font-weight:800}
 #label,#goal,#message,#hint,#power{position:absolute;z-index:2;width:100%;padding:0 12px;text-align:center;display:none;pointer-events:none;text-shadow:0 2px 7px #241139}
-#label{top:calc(env(safe-area-inset-top) + 106px);color:#ffe878;font-size:13px;font-weight:800}
-#goal{top:calc(env(safe-area-inset-top) + 129px);font-size:12px}
-#message{top:25%;font-size:25px;font-weight:900}
+#label{top:calc(env(safe-area-inset-top) + 105px);color:#ffe878;font-size:13px;font-weight:800}
+#goal{top:calc(env(safe-area-inset-top) + 128px);font-size:12px}
+#message{top:26%;font-size:24px;font-weight:900}
 #hint{bottom:10%;font-size:12px}
 #power{bottom:18%;color:#ffe878;font-weight:800}
 #pause{position:absolute;z-index:3;right:12px;bottom:calc(env(safe-area-inset-bottom) + 12px);display:none}
-#again{position:absolute;z-index:3;top:58%;left:50%;transform:translateX(-50%);display:none}
+#again{position:absolute;z-index:3;top:59%;left:50%;transform:translateX(-50%);display:none}
 #loading{position:absolute;inset:0;z-index:20;display:grid;place-items:center;background:#56318d;text-align:center}
 </style>
 </head>
@@ -46,7 +46,7 @@ button:disabled{opacity:.45}
 <div id="loading">
 <div>
 <h1>FLICK FRENZY</h1>
-<p>Loading Cubicle Office...</p>
+<p>Loading your cubicle...</p>
 </div>
 </div>
 
@@ -66,21 +66,22 @@ button:disabled{opacity:.45}
 <div id="message"></div>
 <div id="hint"></div>
 <div id="power"></div>
+
 <button id="pause" class="secondary">MENU</button>
 <button id="again">PLAY AGAIN</button>
 
 <div id="menu" class="screen">
 <div class="panel">
 <h1>FLICK<br>FRENZY</h1>
-<p>🍬 CUBICLE TRICK SHOTS 🏢</p>
+<p>🍬 FIRST-PERSON CUBICLE 🏢</p>
 <div style="font-size:52px">🏀 🖥️ 🗑️</div>
-<p>Flick, bounce and score in a colourful office!</p>
+<p>You're at work. Time for trick shots!</p>
 <p id="menuStats"></p>
 <button id="endlessBtn" class="menuBtn">♾ ENDLESS MODE</button>
 <button id="challengeBtn" class="menuBtn">🎯 CHALLENGE MODE</button>
 <button id="shopBtn" class="menuBtn secondary">🛒 BALL SHOP</button>
 <button id="settingsBtn" class="menuBtn secondary">⚙ SETTINGS</button>
-<p class="small">V0.9.10 · Low cubicle walls · Natural rebounds</p>
+<p class="small">V0.9.11 · Seated view · Desk trick shots</p>
 </div>
 </div>
 
@@ -108,7 +109,7 @@ button:disabled{opacity:.45}
 <div class="row"><strong>Sound</strong><button id="soundToggle"></button></div>
 <div class="row"><strong>Visual effects</strong><button id="effectsToggle"></button></div>
 <div class="row"><strong>Trajectory preview</strong><button id="guideToggle"></button></div>
-<p class="small">Swipe upward to throw. Move sideways during the swipe to aim at desks, monitors and cubicle partitions.</p>
+<p class="small">Swipe upward to throw. Move sideways while swiping to aim around the cubicle.</p>
 <button id="settingsBack" class="menuBtn secondary">BACK</button>
 </div>
 </div>
@@ -119,12 +120,17 @@ import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.m
 const $=id=>document.getElementById(id);
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 
-const R=.23;
+const R=.18;
 const G=9.8;
-const START=new THREE.Vector3(0,1.25,4);
-const BIN_Z=-8;
-const BIN_R=.92;
-const BIN_H=1.35;
+
+// Seated position. Ball starts in front of player.
+const START=new THREE.Vector3(0,1.08,1.4);
+
+// Bin beside the desk.
+const BIN_X=1.72;
+const BIN_Z=-2.15;
+const BIN_R=.43;
+const BIN_H=.68;
 
 const skins=[
 {id:"classic",name:"Classic Neon",price:0,color:"#73faff",glow:"#00dfff"},
@@ -193,11 +199,12 @@ let paletteIndex=-1;
 
 const scene=new THREE.Scene();
 scene.background=new THREE.Color(palettes[0].wall);
-scene.fog=new THREE.Fog(palettes[0].wall,24,48);
+scene.fog=new THREE.Fog(palettes[0].wall,13,26);
 
-const camera=new THREE.PerspectiveCamera(57,1,.1,100);
-const cameraHome=new THREE.Vector3(0,3.5,10);
-const lookHome=new THREE.Vector3(0,1,-5.3);
+// First-person seated camera.
+const camera=new THREE.PerspectiveCamera(72,1,.045,50);
+const cameraHome=new THREE.Vector3(0,1.48,2.65);
+const lookHome=new THREE.Vector3(0,1.25,-2.2);
 const cameraLook=lookHome.clone();
 camera.position.copy(cameraHome);
 camera.lookAt(cameraLook);
@@ -221,14 +228,14 @@ resize();
 
 scene.add(new THREE.HemisphereLight("#ffffff","#b28ed1",3));
 
-const sun=new THREE.DirectionalLight("#fff7ea",3.1);
-sun.position.set(-5,10,5);
+const sun=new THREE.DirectionalLight("#fff7ea",3);
+sun.position.set(-3,7,3);
 sun.castShadow=true;
 sun.shadow.mapSize.set(1024,1024);
-sun.shadow.camera.left=-14;
-sun.shadow.camera.right=14;
-sun.shadow.camera.top=14;
-sun.shadow.camera.bottom=-14;
+sun.shadow.camera.left=-8;
+sun.shadow.camera.right=8;
+sun.shadow.camera.top=8;
+sun.shadow.camera.bottom=-8;
 sun.shadow.bias=-.001;
 scene.add(sun);
 
@@ -252,6 +259,7 @@ const glass=mat("#8de8ff");
 const wood=mat("#ffb284");
 const leaf=mat("#65d992");
 const dark=mat("#69479e");
+const black=mat("#34314e");
 
 function shufflePalette(){
 let n;
@@ -291,20 +299,23 @@ return mesh(new THREE.CylinderGeometry(rt,rb,h,32,1,open),m,x,y,z,parent);
 
 const obstacles=[];
 
-function solid(w,h,d,m,x,y,z,angle=0,restitution=.84){
+function solid(w,h,d,m,x,y,z,angle=0,restitution=.8){
 const o=box(w,h,d,m,x,y,z);
 o.rotation.y=angle;
+
 obstacles.push({
 kind:"box",
 center:new THREE.Vector3(x,y,z),
 half:new THREE.Vector3(w/2,h/2,d/2),
 angle,restitution
 });
+
 return o;
 }
 
-function ballSolid(radius,m,x,y,z,restitution=.82){
+function ballSolid(radius,m,x,y,z,restitution=.8){
 sphere(radius,m,x,y,z);
+
 obstacles.push({
 kind:"sphere",
 center:new THREE.Vector3(x,y,z),
@@ -314,182 +325,166 @@ radius,restitution
 
 function potSolid(top,bottom,h,m,x,y,z){
 cylinder(top,bottom,h,m,x,y,z);
+
 obstacles.push({
 kind:"cylinder",
 center:new THREE.Vector3(x,y,z),
 radius:Math.max(top,bottom),
 height:h,
-restitution:.78
+restitution:.7
 });
 }
 
 // ===================================
-// CANDY POP CUBICLE OFFICE
+// FIRST-PERSON CUBICLE ENVIRONMENT
 // ===================================
 
-// ROOM
-box(13,.2,23,M.floor,0,-.1,-3);
-box(.25,9,23,M.wall,-6.5,4.5,-3);
-box(.25,9,23,M.wall,6.5,4.5,-3);
-box(13,9,.25,M.back,0,4.5,-14.5);
-box(13,.18,23,white,0,9,-3);
+// FLOOR
+box(8,.18,10,M.floor,0,-.09,-1.2);
 
-box(12.7,.24,.15,M.trim,0,.18,-14.25);
-box(.15,.24,22.5,M.trim,-6.28,.18,-3);
-box(.15,.24,22.5,M.trim,6.28,.18,-3);
+// OFFICE BEHIND CUBICLE
+box(8,5,.15,M.back,0,2.5,-5.6);
+box(8,5,.15,M.wall,0,2.5,3.8);
+box(.15,5,10,M.wall,-4,2.5,-1.2);
+box(.15,5,10,M.wall,4,2.5,-1.2);
 
-// WINDOWS
-for(const x of [-3.5,3.5]){
-box(3.6,3.5,.14,white,x,5,-14.23);
-box(3.2,3.1,.12,glass,x,5,-14.13);
-box(.1,3.2,.14,white,x,5,-14.02);
-box(3.3,.1,.14,white,x,5,-14.02);
+// LOW CUBICLE PARTITIONS
+solid(.13,1.9,5.3,M.chair,-2.15,.95,-1.3);
+solid(.13,1.9,5.3,M.chair,2.15,.95,-1.3);
+solid(4.3,1.9,.13,M.chair,0,.95,-3.85);
+
+// WHITE PARTITION EDGES
+box(.2,.08,5.4,white,-2.15,1.94,-1.3);
+box(.2,.08,5.4,white,2.15,1.94,-1.3);
+box(4.4,.08,.2,white,0,1.94,-3.85);
+
+// WRAPAROUND DESK
+// Front section
+solid(3.9,.15,1.05,M.desk,0,.82,-2.1);
+
+// Left wing
+solid(.9,.15,2.0,M.desk,-1.53,.82,-.8);
+
+// Right wing
+solid(.9,.15,1.35,M.desk,1.53,.82,-1.25);
+
+// DESK SUPPORTS
+for(const x of [-1.75,1.75]){
+solid(.1,.75,.1,wood,x,.4,-2.45);
 }
 
-// CEILING LIGHTS
-for(const z of [-10,-3,4]){
-box(2.4,.12,1.1,white,0,8.8,z);
-const l=new THREE.PointLight("#fff8ed",8,12);
-l.position.set(0,8.2,z);
-scene.add(l);
-}
+// RETRO COMPUTER
+solid(1.23,.94,.43,white,0,1.38,-2.35);
+box(1.02,.69,.025,black,0,1.43,-2.115);
+box(.9,.56,.027,glass,0,1.44,-2.09);
 
-// CUBICLE WALLS
-// These are actual workstation dividers.
-// They are low enough for the ball to
-// fly over or bounce off.
-
-// LEFT CUBICLE ROW
-for(const z of [-2.4,-6.0,-10.2]){
-solid(.16,1.8,3.0,M.chair,-2.35,.9,z);
-solid(3.1,1.8,.16,M.chair,-4.7,.9,z-1.5);
-}
-
-// RIGHT CUBICLE ROW
-for(const z of [-2.4,-6.0,-10.2]){
-solid(.16,1.8,3.0,M.chair,2.35,.9,z);
-solid(3.1,1.8,.16,M.chair,4.7,.9,z-1.5);
-}
-
-// CUBICLE TOP TRIM
-for(const z of [-2.4,-6.0,-10.2]){
-box(.24,.1,3.1,white,-2.35,1.84,z);
-box(.24,.1,3.1,white,2.35,1.84,z);
-box(3.2,.1,.24,white,-4.7,1.84,z-1.5);
-box(3.2,.1,.24,white,4.7,1.84,z-1.5);
-}
-
-// DESK AND COMPUTER WORKSTATION
-function workstation(x,z,side){
-const deskX=x;
-const deskZ=z;
-
-solid(2.5,.2,1.35,M.desk,deskX,1.35,deskZ);
-
-for(const xx of [deskX-1.05,deskX+1.05]){
-for(const zz of [deskZ-.5,deskZ+.5]){
-solid(.13,1.25,.13,wood,xx,.68,zz);
+// SCREEN ICONS
+for(let i=0;i<3;i++){
+for(let j=0;j<2;j++){
+box(.17,.14,.012,
+(i+j)%2?M.accent:M.cabinet,
+-.28+i*.28,1.53-j*.24,-2.066);
 }
 }
 
-// MONITOR
-solid(1.1,.75,.15,white,deskX,1.9,deskZ-.32);
-box(.92,.56,.025,glass,deskX,1.92,deskZ-.23);
-solid(.12,.25,.12,M.trim,deskX,1.52,deskZ-.32);
+sphere(.035,leaf,.46,1.07,-2.11);
+box(.13,.06,.02,M.accent,.49,1.08,-2.105);
 
 // KEYBOARD
-solid(.86,.07,.28,M.cabinet,deskX,1.49,deskZ+.3);
+solid(1.1,.08,.38,M.trim,0,.95,-1.37);
+
+// KEYS
+for(let i=0;i<9;i++){
+for(let j=0;j<3;j++){
+box(.085,.012,.07,white,
+-.43+i*.105,.997,-1.48+j*.1);
+}
+}
 
 // MOUSE
-solid(.16,.07,.23,M.accent,deskX+side*.68,1.49,deskZ+.32);
+solid(.17,.08,.26,white,.83,.94,-1.38);
 
-// CHAIR
-solid(.82,.16,.78,M.chair,deskX,.85,deskZ+1.08);
-solid(.82,.86,.16,M.chair,deskX,1.32,deskZ+1.47);
-solid(.13,.7,.13,M.trim,deskX,.4,deskZ+1.08);
-}
+// COFFEE MUG
+potSolid(.16,.15,.28,M.accent,1.48,1.03,-1.75);
+cylinder(.15,.15,.012,black,1.48,1.18,-1.75);
 
-// SIX CUBICLE WORKSTATIONS
-workstation(-4.5,-2.5,-1);
-workstation(4.5,-2.5,1);
+// BOOKS
+solid(.43,.1,.34,M.accent,-1.5,.95,-1.8);
+solid(.43,.1,.34,M.cabinet,-1.5,1.06,-1.8);
 
-workstation(-4.5,-6.1,-1);
-workstation(4.5,-6.1,1);
+// DESK LAMP
+cylinder(.17,.2,.07,M.trim,-1.62,.94,-2.38);
+solid(.065,.6,.065,white,-1.62,1.27,-2.38);
+sphere(.22,M.accent,-1.62,1.63,-2.38);
 
-workstation(-4.5,-10.3,-1);
-workstation(4.5,-10.3,1);
+// STICKY NOTES
+box(.4,.3,.025,M.desk,-.65,1.65,-3.76);
+box(.32,.3,.025,M.accent,.65,1.55,-3.76);
 
-// FILING CABINETS
-for(const x of [-5.65,5.65]){
-solid(.9,1.45,.85,M.cabinet,x,.725,-12.6);
+// CUBICLE POSTERS
+box(.75,.9,.025,white,-1.2,1.38,-3.76);
+box(.65,.78,.028,M.accent,-1.2,1.38,-3.735);
 
-for(let i=0;i<2;i++){
-solid(.55,.06,.05,white,x,.42+i*.65,-12.14);
-}
-}
+box(.75,.9,.025,white,1.18,1.38,-3.76);
+box(.65,.78,.028,M.cabinet,1.18,1.38,-3.735);
 
-// OFFICE STORAGE BOXES
-solid(.72,.62,.72,M.accent,-4.85,.31,-12.1);
-solid(.62,.55,.62,M.desk,4.85,.275,-12.1);
+// CALENDAR
+box(.65,.58,.03,white,-2.05,1.36,-2.2);
 
-// PLANTS
-for(const x of [-5.7,5.7]){
-potSolid(.35,.27,.58,M.desk,x,.29,-1);
-ballSolid(.42,leaf,x,.91,-1);
-}
+// PLANT
+potSolid(.17,.13,.25,M.desk,1.65,1.02,-2.35);
+ballSolid(.23,leaf,1.65,1.38,-2.35);
 
-// SMALL FLOOR RUG
-box(2.0,.025,2.6,M.accent,0,.025,-5.7);
+// OFFICE DRAWERS
+solid(.56,.7,.7,M.cabinet,-1.62,.35,-2.2);
+solid(.37,.05,.03,white,-1.62,.55,-1.82);
+solid(.37,.05,.03,white,-1.62,.29,-1.82);
 
-// CUBICLE OFFICE DECOR
-box(1.5,1.1,.08,white,-6.25,4.2,-7.5);
-box(1.15,.75,.09,M.accent,-6.17,4.2,-7.5);
-
-box(1.5,1.1,.08,white,6.25,4.2,-7.5);
-box(1.15,.75,.09,M.cabinet,6.17,4.2,-7.5);
+// FLOOR RUG
+box(2.8,.025,2.2,M.accent,0,.015,.7);
 
 // ===================================
-// WASTEPAPER BIN TARGET
+// WASTEPAPER BIN
 // ===================================
 
 const targetGroup=new THREE.Group();
-targetGroup.position.set(0,0,BIN_Z);
+targetGroup.position.set(BIN_X,0,BIN_Z);
 scene.add(targetGroup);
 
 const binBody=cylinder(
-BIN_R,.73,BIN_H,M.cabinet,
+BIN_R,.32,BIN_H,M.cabinet,
 0,BIN_H/2,0,targetGroup,true
 );
 binBody.material.side=THREE.DoubleSide;
 
-cylinder(.73,.73,.06,dark,0,.03,0,targetGroup);
+cylinder(.32,.32,.035,dark,0,.018,0,targetGroup);
 
 const binRim=mesh(
-new THREE.TorusGeometry(BIN_R,.075,12,48),
+new THREE.TorusGeometry(BIN_R,.045,10,36),
 white,0,BIN_H,0,targetGroup
 );
 binRim.rotation.x=Math.PI/2;
 
 const targetMarker=mesh(
-new THREE.RingGeometry(.3,.42,40),
+new THREE.RingGeometry(.13,.2,32),
 new THREE.MeshBasicMaterial({
 color:"#fff56a",
 transparent:true,
-opacity:.85,
+opacity:.9,
 side:THREE.DoubleSide
 }),
-0,BIN_H+.025,0,targetGroup
+0,BIN_H+.02,0,targetGroup
 );
 targetMarker.rotation.x=-Math.PI/2;
 
 // ===================================
-// BALL AND AIMING GUIDE
+// PLAYER HAND AND BALL
 // ===================================
 
 const ballMat=new THREE.MeshStandardMaterial({
 color:"#73faff",
 emissive:"#00aacc",
-emissiveIntensity:.6,
+emissiveIntensity:.55,
 roughness:.3
 });
 
@@ -498,18 +493,30 @@ new THREE.SphereGeometry(R,24,18),
 ballMat,START.x,START.y,START.z
 );
 
-const ballLight=new THREE.PointLight("#00eaff",2.3,3);
+const handMat=mat("#ffe0c8");
+
+const handGroup=new THREE.Group();
+scene.add(handGroup);
+
+// Stylised hand and sleeve
+sphere(.17,handMat,0,0,0,handGroup);
+const sleeve=box(.29,.24,.28,M.chair,0,-.18,.11,handGroup);
+sleeve.rotation.x=-.3;
+
+handGroup.position.set(.22,.87,1.55);
+
+const ballLight=new THREE.PointLight("#00eaff",1.8,2.5);
 scene.add(ballLight);
 
 const shadow=mesh(
-new THREE.CircleGeometry(.31,24),
+new THREE.CircleGeometry(.25,24),
 new THREE.MeshBasicMaterial({
 color:"#48365c",
 transparent:true,
-opacity:.23,
+opacity:.22,
 depthWrite:false
 }),
-0,.02,4
+0,.02,1
 );
 shadow.rotation.x=-Math.PI/2;
 shadow.castShadow=false;
@@ -525,7 +532,7 @@ opacity:.7
 scene.add(trail);
 trail.visible=false;
 
-// TWO-LAYER TRAJECTORY
+// AIMING GUIDE
 const guideOuter=new THREE.Line(
 new THREE.BufferGeometry(),
 new THREE.LineBasicMaterial({
@@ -552,7 +559,6 @@ guideInner.renderOrder=101;
 scene.add(guideInner);
 guideInner.visible=false;
 
-// PINK BOUNCE MARKERS
 const bounceMarkers=[];
 const bounceMaterial=new THREE.MeshBasicMaterial({
 color:"#ff4aa7",
@@ -561,7 +567,7 @@ depthTest:false
 
 for(let i=0;i<12;i++){
 const marker=mesh(
-new THREE.SphereGeometry(.14,12,10),
+new THREE.SphereGeometry(.09,12,10),
 bounceMaterial,0,-100,0
 );
 marker.renderOrder=103;
@@ -569,9 +575,8 @@ marker.visible=false;
 bounceMarkers.push(marker);
 }
 
-// GREEN SUCCESS MARKER
 const predictedHit=mesh(
-new THREE.SphereGeometry(.19,14,10),
+new THREE.SphereGeometry(.12,14,10),
 new THREE.MeshBasicMaterial({
 color:"#65ff91",
 depthTest:false
@@ -648,7 +653,7 @@ $("banks").textContent="Banks: "+banks;
 
 function updateLabel(){
 $("label").textContent=mode==="endless"?
-"🏢 CUBICLE OFFICE · ROUND "+round:
+"🏢 YOUR CUBICLE · ROUND "+round:
 "🎯 "+(activeChallenge()?.name||"Challenge");
 }
 
@@ -703,6 +708,7 @@ ball.scale.set(1,1,1);
 ball.visible=true;
 ballLight.position.copy(START);
 
+handGroup.visible=true;
 hideGuide();
 trail.visible=false;
 trailPoints=[];
@@ -732,7 +738,7 @@ over=false;
 touch=null;
 
 shufflePalette();
-targetGroup.position.x=0;
+targetGroup.position.x=BIN_X;
 camera.position.copy(cameraHome);
 cameraLook.copy(lookHome);
 
@@ -742,11 +748,11 @@ updateLabel();
 updateGoal();
 
 $("hint").textContent=
-"Swipe UP · Yellow = path · Pink = bounce · Green = score";
+"Swipe UP to throw · Yellow = path · Pink = rebound";
 $("power").textContent="";
 
 showScreen("playing");
-message("🏢 CUBICLE OFFICE!",1300);
+message("🏢 BACK TO WORK!",1300);
 }
 
 function completeChallenge(){
@@ -820,7 +826,7 @@ updateGoal();
 }
 
 message(bank?
-"CUBICLE BANK! +"+points:
+"DESK BANK! +"+points:
 perfect?"PERFECT! +"+points:
 "SWISH! +"+points);
 
@@ -897,23 +903,25 @@ return .40+(normalized-.25)*.40;
 return .60+((normalized-.75)/.25)*.40;
 }
 
-// SHOT VELOCITY
+// SHORT-RANGE CUBICLE THROW
 function launchVelocity(dx,dy){
 const power=swipeToPower(Math.max(0,-dy));
 const sideways=clamp(dx/(innerWidth*.27),-1,1);
 
-// Forward speed and arc tuned for office bin.
-const forward=7.6+power*3;
-const flight=12/forward;
-const height=BIN_H+.12;
+const forward=3.2+power*2.7;
+const lateral=sideways*2.4+2.3;
+
+// Ball needs to travel approximately 3.55 units.
+const flight=3.55/forward;
+const targetHeight=BIN_H+.09;
 
 const vertical=
-(height-START.y+.5*G*flight*flight)/flight;
+(targetHeight-START.y+.5*G*flight*flight)/flight;
 
 return{
 power,
 velocity:new THREE.Vector3(
-sideways*6.6,
+lateral,
 vertical,
 -forward
 )
@@ -921,7 +929,7 @@ vertical,
 }
 
 // ===================================
-// SHARED COLLISION PHYSICS
+// COLLISION PHYSICS
 // ===================================
 
 const UP=new THREE.Vector3(0,1,0);
@@ -944,7 +952,6 @@ events:[]
 
 function rebound(s,n,e,bank=true){
 const speed=s.v.dot(n);
-
 if(speed>=-.01)return false;
 
 s.v.addScaledVector(n,-(1+e)*speed);
@@ -961,38 +968,38 @@ return true;
 function collideRoom(s,dt){
 const p=s.p;
 
-if(p.x<-6.25+R){
-p.x=-6.25+R;
-rebound(s,new THREE.Vector3(1,0,0),.86);
+if(p.x<-3.8+R){
+p.x=-3.8+R;
+rebound(s,new THREE.Vector3(1,0,0),.8);
 }
 
-if(p.x>6.25-R){
-p.x=6.25-R;
-rebound(s,new THREE.Vector3(-1,0,0),.86);
+if(p.x>3.8-R){
+p.x=3.8-R;
+rebound(s,new THREE.Vector3(-1,0,0),.8);
 }
 
-if(p.z<-14.2+R){
-p.z=-14.2+R;
-rebound(s,new THREE.Vector3(0,0,1),.86);
+if(p.z<-5.45+R){
+p.z=-5.45+R;
+rebound(s,new THREE.Vector3(0,0,1),.8);
 }
 
-if(p.z>8.35-R){
-p.z=8.35-R;
-rebound(s,new THREE.Vector3(0,0,-1),.86);
+if(p.z>3.6-R){
+p.z=3.6-R;
+rebound(s,new THREE.Vector3(0,0,-1),.8);
 }
 
-if(p.y>8.75-R){
-p.y=8.75-R;
-rebound(s,new THREE.Vector3(0,-1,0),.78);
+if(p.y>4.8-R){
+p.y=4.8-R;
+rebound(s,new THREE.Vector3(0,-1,0),.75);
 }
 
 if(p.y<R){
 p.y=R;
 
 if(s.v.y<-.2){
-rebound(s,UP,.78,false);
-s.v.x*=.97;
-s.v.z*=.97;
+rebound(s,UP,.72,false);
+s.v.x*=.96;
+s.v.z*=.96;
 }else{
 s.v.y=0;
 const drag=Math.exp(-1.4*dt);
@@ -1052,7 +1059,6 @@ rebound(s,n,b.restitution);
 continue;
 }
 
-// ROTATED BOX COLLISION
 const local=s.p.clone()
 .sub(b.center)
 .applyAxisAngle(UP,-b.angle);
@@ -1106,7 +1112,7 @@ const dx=p.x-cx;
 const dz=p.z-BIN_Z;
 const horizontal=Math.hypot(dx,dz);
 
-// BALL ENTERS THE BIN
+// SCORING
 if(previous.y>=BIN_H&&p.y<BIN_H&&s.v.y<0){
 const t=clamp(
 (previous.y-BIN_H)/(previous.y-p.y),
@@ -1117,21 +1123,21 @@ const x=previous.x+(p.x-previous.x)*t;
 const z=previous.z+(p.z-previous.z)*t;
 const dist=Math.hypot(x-cx,z-BIN_Z);
 
-if(dist<BIN_R-R-.06){
+if(dist<BIN_R-R-.025){
 s.scored=true;
-s.perfect=dist<BIN_R*.3;
+s.perfect=dist<BIN_R*.28;
 s.done=true;
 return;
 }
 }
 
-// RIM COLLISION
+// BIN RIM
 const ringDistance=Math.hypot(
 horizontal-BIN_R,
 p.y-BIN_H
 );
 
-if(ringDistance<R+.075&&s.cooldown<=0){
+if(ringDistance<R+.045&&s.cooldown<=0){
 const radial=new THREE.Vector3(
 dx/(horizontal||1),
 0,
@@ -1146,13 +1152,13 @@ radial.z*(horizontal-BIN_R)
 
 if(normal.lengthSq()<.01)normal.set(0,1,0);
 
-if(rebound(s,normal,.78,false)){
-p.addScaledVector(normal,.025);
+if(rebound(s,normal,.72,false)){
+p.addScaledVector(normal,.02);
 s.cooldown=.12;
 }
 }
 
-// OUTSIDE OF BIN
+// BIN SIDES
 if(p.y>R&&p.y<BIN_H-R*.25&&
 Math.abs(horizontal-BIN_R)<R){
 
@@ -1189,7 +1195,7 @@ collideRoom(s,dt);
 collideFurniture(s);
 collideBin(s,previous,cx);
 
-if(s.age>9||(s.age>2&&s.groundTime>.95)){
+if(s.age>7||(s.age>1.5&&s.groundTime>.8)){
 s.done=true;
 }
 }
@@ -1208,20 +1214,18 @@ const data=launchVelocity(dx,dy);
 const sim=makeState(data.velocity);
 const points=[sim.p.clone()];
 
-for(let i=0;i<900;i++){
+for(let i=0;i<750;i++){
 physicsStep(sim,1/180,targetGroup.position.x);
 
-if(i%4===0)points.push(sim.p.clone());
+if(i%3===0)points.push(sim.p.clone());
 if(sim.done)break;
 }
-
-const geo=new THREE.BufferGeometry().setFromPoints(points);
 
 guideOuter.geometry.dispose();
 guideInner.geometry.dispose();
 
-guideOuter.geometry=geo;
-guideInner.geometry=geo.clone();
+guideOuter.geometry=new THREE.BufferGeometry().setFromPoints(points);
+guideInner.geometry=new THREE.BufferGeometry().setFromPoints(points);
 
 guideOuter.visible=true;
 guideInner.visible=true;
@@ -1230,16 +1234,11 @@ for(let i=0;i<bounceMarkers.length;i++){
 const m=bounceMarkers[i];
 m.visible=i<sim.events.length;
 
-if(m.visible){
-m.position.copy(sim.events[i]);
-}
+if(m.visible)m.position.copy(sim.events[i]);
 }
 
 predictedHit.visible=sim.scored;
-
-if(sim.scored){
-predictedHit.position.copy(sim.p);
-}
+if(sim.scored)predictedHit.position.copy(sim.p);
 
 guideInner.material.color.set(
 sim.scored?"#65ff91":"#fff35a"
@@ -1251,7 +1250,9 @@ const data=launchVelocity(dx,dy);
 shot=makeState(data.velocity);
 
 ball.position.copy(START);
+handGroup.visible=false;
 hideGuide();
+
 trailPoints=[];
 trail.visible=effectsOn;
 
@@ -1310,7 +1311,7 @@ hideGuide();
 });
 
 // ===================================
-// BALL ANIMATION
+// BALL UPDATE
 // ===================================
 
 function updateBall(dt){
@@ -1337,14 +1338,14 @@ beep(340);
 shadow.position.set(ball.position.x,.02,ball.position.z);
 
 shadow.material.opacity=clamp(
-.3-ball.position.y*.035,
+.3-ball.position.y*.05,
 .04,.25
 );
 
 if(effectsOn){
 trailPoints.push(ball.position.clone());
 
-if(trailPoints.length>30){
+if(trailPoints.length>25){
 trailPoints.shift();
 }
 
@@ -1359,21 +1360,16 @@ finish(shot.scored,shot.perfect);
 }
 
 function updateCamera(dt){
+// Remain seated. Only tiny natural head movement.
 const desired=cameraHome.clone();
 const look=lookHome.clone();
 
 if(screen==="playing"&&shot&&!shot.done){
-const p=shot.p;
-
-desired.x=clamp(p.x*.15,-1.1,1.1);
-desired.y+=clamp((p.y-1.25)*.11,0,.9);
-desired.z-=clamp((4-p.z)*.07,0,1.15);
-
-look.x=clamp(p.x*.18,-1,1);
-look.y+=clamp((p.y-1.25)*.13,0,.8);
+desired.x=clamp(shot.p.x*.015,-.035,.035);
+look.x=clamp(shot.p.x*.05,-.15,.15);
 }
 
-const a=1-Math.exp(-dt*2.8);
+const a=1-Math.exp(-dt*3);
 
 camera.position.lerp(desired,a);
 cameraLook.lerp(look,a);
@@ -1388,8 +1384,8 @@ const c=activeChallenge();
 
 targetGroup.position.x=
 mode==="challenge"&&c?.moving?
-Math.sin(targetPhase*1.2)*1.1:
-0;
+BIN_X+Math.sin(targetPhase*1.4)*.25:
+BIN_X;
 
 if(mode==="challenge"&&!over){
 updateGoal();
