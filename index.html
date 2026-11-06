@@ -680,7 +680,34 @@ const RELEASE=new THREE.Vector3(0,1.25,4);
 
 // This curve keeps small swipe differences around the
 // middle from producing large jumps in shot power.
-function swipeToPower(swipeDistance){
+
+function swipeToPower(swipeDistance) {
+  const normalized = clamp(
+    (swipeDistance / innerHeight - 0.06) / 0.36,
+    0,
+    1
+  );
+
+  // Expand the middle power range so that
+  // small swipe differences have less effect.
+  //
+  // 25% swipe input -> 40% shot power
+  // 50% swipe input -> 50% shot power
+  // 75% swipe input -> 60% shot power
+  //
+  // Full power remains achievable.
+
+  if (normalized < 0.25) {
+    return (normalized / 0.25) * 0.40;
+  }
+
+  if (normalized <= 0.75) {
+    return 0.40 + (normalized - 0.25) * 0.40;
+  }
+
+  return 0.60 + ((normalized - 0.75) / 0.25) * 0.40;
+}
+
 const normalized=clamp(
 (swipeDistance/innerHeight-.06)/.36,0,1
 );
