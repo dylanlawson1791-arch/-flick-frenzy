@@ -5,11 +5,11 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="theme-color" content="#433650">
-<title>Flick Frenzy V0.9.21</title>
+<title>Flick Frenzy V0.9.22</title>
 <style>
 *{box-sizing:border-box}
 html,body{margin:0;width:100%;height:100%;overflow:hidden}
-body{font-family:system-ui,Arial;background:#433650;color:white;touch-action:none;user-select:none}
+body{font-family:system-ui,Arial;background:#433650;color:#fff;touch-action:none;user-select:none}
 canvas{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none}
 .screen{position:absolute;inset:0;z-index:5;display:none;align-items:center;justify-content:center;padding:15px;background:linear-gradient(145deg,#b67fa7,#8074b1,#79c6bd)}
 .screen.active{display:flex}
@@ -21,7 +21,7 @@ p{color:#f1e8f2}
 button{border:0;border-radius:12px;padding:13px;font-weight:850;font-size:15px;background:#ffe09a;color:#332940;cursor:pointer}
 button:disabled{opacity:.45}
 .menuBtn{display:block;width:100%;margin:10px 0}
-.secondary{background:#8170a5;color:white}
+.secondary{background:#8170a5;color:#fff}
 .item{background:#4c405f;border:1px solid #aa93bf;border-radius:13px;padding:12px;margin:10px 0;text-align:left}
 .item strong{color:#ffe0a0}
 .item p{font-size:13px}
@@ -73,7 +73,7 @@ button:disabled{opacity:.45}
 <button class="menuBtn" id="challengeBtn">CHALLENGES</button>
 <button class="menuBtn secondary" id="shopBtn">BALL SHOP</button>
 <button class="menuBtn secondary" id="settingsBtn">SETTINGS</button>
-<p style="font-size:12px">V0.9.21 · Angled trick shots</p>
+<p style="font-size:12px">V0.9.22 · Two trick-shot surfaces</p>
 </div></div>
 
 <div class="screen" id="challenges"><div class="panel">
@@ -95,7 +95,7 @@ button:disabled{opacity:.45}
 <div class="row"><strong>Sound</strong><button id="soundToggle"></button></div>
 <div class="row"><strong>Effects</strong><button id="effectsToggle"></button></div>
 <div class="row"><strong>Trajectory guide</strong><button id="guideToggle"></button></div>
-<p>Short upward swipes reach maximum height and power. Swipe diagonally to aim sideways. Bounce shots off the angled computer and cubicle walls.</p>
+<p>Two highlighted trick-shot surfaces: the computer and the right cubicle wall. Use short upward swipes for power and height, and diagonal swipes to steer.</p>
 <button class="menuBtn secondary" id="settingsBack">BACK</button>
 </div></div>
 
@@ -116,6 +116,11 @@ START.y=1.19;
 
 const BIN_X=1.43,BIN_Z=-.78,BIN_BASE=.85,BIN_R=.247,BIN_H=.44;
 const BIN_TOP=BIN_BASE+BIN_H;
+
+// The two deliberate trick-shot surfaces have
+// their own collision identities.
+const BANK_COMPUTER="computerBank";
+const BANK_WALL="wallBank";
 
 const PHYSICS={
 wallBounce:.88,
@@ -235,11 +240,12 @@ chair:mat("#7b6c9c"),
 cabinet:mat("#80afa6"),
 floor:mat("#817d8a")
 };
-
 const cream=mat("#d9d0c2"),black=mat("#35343c"),dark=mat("#4d4652");
 const chrome=mat("#b5b2b7",.4,.48),coffee=mat("#574139");
 const plant=mat("#598f66"),skin=mat("#e5bda2");
 const cyan=mat("#83b9c9"),coral=mat("#cf838c"),yellow=mat("#e4c58b"),wood=mat("#896b62");
+const bankGold=mat("#f3cf83",.38,.14);
+const bankTeal=mat("#78d4c5",.38,.12);
 
 const palettes=[
 {wall:"#a989a5",back:"#bd9c9b",desk:"#a78c83",trim:"#665c78",accent:"#d3a478",chair:"#7b6c9c",cabinet:"#80afa6",floor:"#817d8a"},
@@ -247,7 +253,6 @@ const palettes=[
 {wall:"#a8b5a5",back:"#b7c0a6",desk:"#aa8e7c",trim:"#756b84",accent:"#dfba8d",chair:"#8d7ba1",cabinet:"#81aeb5",floor:"#8c888b"},
 {wall:"#b6a0bb",back:"#c9aeb6",desk:"#b49a8e",trim:"#756381",accent:"#e1bd92",chair:"#9c83ac",cabinet:"#83b4a9",floor:"#918691"}
 ];
-
 let paletteIndex=-1;
 function shufflePalette(){
 let n;
@@ -259,7 +264,7 @@ scene.background.set(p.back);
 scene.fog.color.set(p.back);
 }
 
-// GEOMETRY
+// GEOMETRY AND COLLISION
 
 function mesh(g,m,x=0,y=0,z=0,parent=scene){
 const o=new THREE.Mesh(g,m);
@@ -284,31 +289,18 @@ o.quaternion.setFromUnitVectors(V(0,1,0),v.normalize());
 return o;
 }
 
-// ROTATED COLLISION BOXES
-// The visible geometry and its collision
-// surface use the exact same rotation.
-
 const obstacles=[];
-
 function collisionBox(w,h,d,x,y,z,restitution=.7,type="object",angle=0){
 obstacles.push({
-c:V(x,y,z),
-h:V(w/2,h/2,d/2),
-e:restitution,type,
-angle,
-cos:Math.cos(angle),
-sin:Math.sin(angle)
+c:V(x,y,z),h:V(w/2,h/2,d/2),
+e:restitution,type,angle,
+cos:Math.cos(angle),sin:Math.sin(angle)
 });
 }
 function solid(w,h,d,m,x,y,z,restitution=.7,type="object",angle=0){
 const o=box(w,h,d,m,x,y,z);
 o.rotation.y=angle;
 collisionBox(w,h,d,x,y,z,restitution,type,angle);
-return o;
-}
-function rotatedBox(w,h,d,m,x,y,z,angle){
-const o=box(w,h,d,m,x,y,z);
-o.rotation.y=angle;
 return o;
 }
 function graphic(w,h,draw){
@@ -342,11 +334,6 @@ box(9,4,.14,M.back,0,2,-5.5);
 box(.15,4,10,M.back,-4.5,2,-1.2);
 box(.15,4,10,M.back,4.5,2,-1.2);
 
-// Main cubicle walls are unchanged.
-// Additional angled upper panels provide
-// real rebound surfaces without blocking
-// the normal path to the bin.
-
 solid(4.4,2.55,.1,M.wall,0,1.275,-2.55,PHYSICS.wallBounce,"wall");
 solid(.1,2.55,4,M.wall,-2.22,1.275,-.55,PHYSICS.wallBounce,"wall");
 solid(.1,2.55,4,M.wall,2.22,1.275,-.55,PHYSICS.wallBounce,"wall");
@@ -361,22 +348,6 @@ box(4.4,.012,.012,M.trim,0,y,-2.49);
 box(.012,.012,3.95,M.trim,-2.16,y,-.55);
 box(.012,.012,3.95,M.trim,2.16,y,-.55);
 }
-
-// V0.9.21: angled wall wings.
-// They are mounted high enough that the
-// desk and bin remain unobstructed.
-
-const LEFT_WING_ANGLE=-.30;
-const RIGHT_WING_ANGLE=.30;
-
-solid(.82,.82,.075,M.wall,-1.73,1.91,-1.52,
-PHYSICS.wallBounce,"wall",LEFT_WING_ANGLE);
-
-solid(.82,.82,.075,M.wall,1.73,1.91,-1.52,
-PHYSICS.wallBounce,"wall",RIGHT_WING_ANGLE);
-
-rotatedBox(.84,.04,.09,chrome,-1.73,2.34,-1.52,LEFT_WING_ANGLE);
-rotatedBox(.84,.04,.09,chrome,1.73,2.34,-1.52,RIGHT_WING_ANGLE);
 
 poster(textPanel(["BURGER","BREAK!"],"#ad604f","#f8d18c"),-1.45,1.63,-2.47,.7,.85);
 poster(textPanel(["WORK","SMARTER"],"#587c87","#f6e8cf"),.78,1.69,-2.47,.67,.75);
@@ -443,12 +414,11 @@ box(.2,.025,.03,chrome,-1.52,y,-1.4);
 }
 box(2.12,.035,.035,wood,0,.73,-1.26);
 
-// V0.9.21 ANGLED COMPUTER
-// Every computer component uses a shared
-// parent group, and the physics box uses
-// the same Y-axis rotation.
+// TRICK SHOT 1 — COMPUTER BANK
+// The angled computer screen is a real
+// collision surface, not a scripted redirect.
 
-const COMPUTER_ANGLE=-.28;
+const COMPUTER_ANGLE=-.43;
 const computerGroup=new THREE.Group();
 computerGroup.position.set(-.05,0,-1.96);
 computerGroup.rotation.y=COMPUTER_ANGLE;
@@ -462,14 +432,8 @@ return sphere(r,m,x,y,z,computerGroup);
 }
 
 computerBox(.91,.78,.48,cream,0,1.29,0);
-
-collisionBox(
-.91,.78,.48,
--.05,1.29,-1.96,
-PHYSICS.computerBounce,
-"computer",
-COMPUTER_ANGLE
-);
+collisionBox(.91,.78,.48,-.05,1.29,-1.96,
+PHYSICS.computerBounce,"computer",COMPUTER_ANGLE);
 
 computerBox(.82,.66,.03,black,0,1.33,.265);
 
@@ -493,11 +457,55 @@ c.fillStyle="#fff3dd";c.font="bold 23px Arial";c.fillText(labels[i],x,y+68);
 computerBox(.75,.56,.032,monitorTexture,0,1.35,.288);
 computerSphere(.021,plant,.34,.97,.30);
 computerBox(.085,.05,.026,coral,.41,.97,.30);
-
 computerBox(.25,.12,.22,cream,0,.87,.03);
 computerBox(.65,.055,.37,cream,0,.8,.07);
 
-// Keyboard is slightly angled too.
+// Highlighted strike plate attached to the
+// computer's visible face.
+computerBox(.77,.035,.028,bankGold,0,1.63,.312);
+computerBox(.035,.53,.028,bankGold,-.39,1.35,.312);
+computerBox(.035,.53,.028,bankGold,.39,1.35,.312);
+
+// Thin visible highlight. Collision still
+// comes from the computer body itself.
+const computerMarker=textPanel(["BANK","1"],"#e5b76c","#45344e",256,256);
+computerBox(.14,.14,.008,computerMarker,.31,1.55,.331);
+
+// TRICK SHOT 2 — RIGHT WALL BANK
+// A distinct diagonal panel near the
+// right-hand side of the desk.
+
+const WALL_BANK_ANGLE=.57;
+const wallBankX=1.83;
+const wallBankY=1.55;
+const wallBankZ=-1.53;
+
+solid(.78,.82,.075,M.wall,
+wallBankX,wallBankY,wallBankZ,
+PHYSICS.wallBounce,"wall",WALL_BANK_ANGLE);
+
+// The teal strike zone is flush with
+// the wall's front face.
+const wallBankGroup=new THREE.Group();
+wallBankGroup.position.set(wallBankX,wallBankY,wallBankZ);
+wallBankGroup.rotation.y=WALL_BANK_ANGLE;
+scene.add(wallBankGroup);
+
+box(.72,.065,.085,bankTeal,0,.39,.003,wallBankGroup);
+box(.72,.065,.085,bankTeal,0,-.39,.003,wallBankGroup);
+box(.065,.72,.085,bankTeal,-.36,0,.003,wallBankGroup);
+box(.065,.72,.085,bankTeal,.36,0,.003,wallBankGroup);
+
+const wallMarker=textPanel(["BANK","2"],"#69c9ba","#30414f",256,256);
+box(.22,.22,.01,wallMarker,0,.05,.054,wallBankGroup);
+
+// Decorative upper wall wing on the left.
+// This is NOT a designed scoring surface.
+solid(.82,.62,.075,M.wall,-1.73,1.99,-1.52,
+PHYSICS.wallBounce,"wall",-.30);
+
+// KEYBOARD
+
 const keyboardGroup=new THREE.Group();
 keyboardGroup.position.set(-.06,0,-1.39);
 keyboardGroup.rotation.y=-.12;
@@ -516,13 +524,12 @@ box(.31,.012,.32,M.trim,.65,.835,-1.4);
 const mouse=sphere(.09,cream,.65,.88,-1.4);
 mouse.scale.set(.72,.45,1.25);
 
-// DECOR
+// OFFICE DECOR
 
 solid(.37,.13,.3,black,-1.42,.94,-.65,.7,"object");
 box(.3,.035,.095,M.cabinet,-1.42,1.04,-.75);
-for(let r=0;r<3;r++)for(let col=0;col<3;col++){
+for(let r=0;r<3;r++)for(let col=0;col<3;col++)
 box(.048,.013,.045,cream,-1.51+col*.09,1.018,-.61+r*.08);
-}
 const receiver=box(.34,.08,.075,dark,-1.42,1.1,-.79);
 receiver.rotation.z=-.12;
 
@@ -566,7 +573,7 @@ tube(V(-1.54,.9,-1.9),V(-1.61,1.4,-1.91),.025,chrome);
 const shade=mesh(new THREE.ConeGeometry(.17,.22,24),M.accent,-1.61,1.46,-1.91);
 shade.rotation.z=.35;
 
-// BIN
+// BIN — SAME POSITION AND SIZE
 
 const targetGroup=new THREE.Group();
 targetGroup.position.set(BIN_X,BIN_BASE,BIN_Z);
@@ -581,7 +588,7 @@ const rim=mesh(new THREE.TorusGeometry(BIN_R,.02,10,36),chrome,0,BIN_H,0,targetG
 rim.rotation.x=Math.PI/2;
 box(.18,.07,.012,cream,0,.24,.205,targetGroup);
 
-// BALL AND HAND
+// BALL AND HAND — SAME POSITION
 
 const ballMat=new THREE.MeshStandardMaterial({
 color:"#75dce8",emissive:"#32a6ba",emissiveIntensity:.15,roughness:.65
@@ -620,7 +627,7 @@ new THREE.LineBasicMaterial({color:"#8dd8e0",transparent:true,opacity:.6})
 scene.add(trail);
 trail.visible=false;
 
-// GUIDE
+// TRAJECTORY GUIDE
 
 const guideDots=[];
 const dotMaterial=new THREE.MeshBasicMaterial({
@@ -639,7 +646,6 @@ new THREE.MeshBasicMaterial({color:"#f17b9f",depthTest:false,depthWrite:false}),
 );
 d.visible=false;d.renderOrder=101;bounceDots.push(d);
 }
-
 function hideGuide(){
 for(const d of guideDots)d.visible=false;
 for(const d of bounceDots)d.visible=false;
@@ -653,7 +659,7 @@ trail.material.color.set(s.color);
 ballLight.color.set(s.glow);
 }
 
-// STATE
+// GAME STATE
 
 let screen="menu",mode="endless",challengeId=null;
 let score=0,misses=0,combo=0,banks=0;
@@ -691,7 +697,7 @@ $("banks").textContent="Banks: "+banks;
 }
 function updateLabel(){
 $("label").textContent=mode==="endless"?
-"ANGLED CUBICLE · ROUND "+round:
+"OFFICE TRICK SHOTS · ROUND "+round:
 activeChallenge()?.name||"Challenge";
 }
 function updateGoal(){
@@ -751,7 +757,7 @@ targetGroup.position.x=BIN_X;
 shufflePalette();
 resetBall();
 updateHUD();updateLabel();updateGoal();
-$("hint").textContent="Short swipe = high throw · Swipe diagonally for bank shots";
+$("hint").textContent="BANK 1: Computer · BANK 2: Right wall";
 showScreen("playing");
 message("READY TO FLICK!",1100);
 }
@@ -797,7 +803,12 @@ if(c.type==="perfect"&&perfect)challengeCount++;
 }
 updateGoal();
 }
-message(bank?"BANK SHOT! +"+points:perfect?"PERFECT! +"+points:"IN THE BIN! +"+points);
+if(shot.bankTypes.includes(BANK_COMPUTER))
+message("COMPUTER BANK! +"+points);
+else if(shot.bankTypes.includes(BANK_WALL))
+message("WALL BANK! +"+points);
+else
+message(bank?"LUCKY BANK! +"+points:perfect?"PERFECT! +"+points:"IN THE BIN! +"+points);
 beep(790);save();
 }else{
 misses++;combo=0;streak=0;
@@ -829,68 +840,64 @@ resetBall();
 },1050);
 }
 
-// V0.9.21 SWIPE CONTROLS
-// Both height and power reach maximum
-// after approximately 22% screen height.
+// SHORT SWIPE — POWER AND HEIGHT
 
 function swipeToPower(swipeDistance){
-return clamp(
-(swipeDistance/innerHeight-.02)/.20,
-0,1
-);
+return clamp((swipeDistance/innerHeight-.02)/.20,0,1);
 }
 function launchVelocity(dx,dy){
 const swipeDistance=Math.max(0,-dy);
 const power=swipeToPower(swipeDistance);
-
-// IMPORTANT FIX:
-// Height now uses the same short-swipe
-// sensitivity as throwing power.
 const elevation=power;
-
 const sideways=clamp(dx/(innerWidth*.42),-1.4,1.4);
 const forward=2.7+power*2.5;
 const vertical=1.55+elevation*4.7;
 const lateral=sideways*(2.8+power*1.9);
-
-const velocity=FORWARD.clone()
-.multiplyScalar(forward)
+const velocity=FORWARD.clone().multiplyScalar(forward)
 .addScaledVector(RIGHT,lateral);
-
 velocity.y=vertical;
 return{power,velocity};
 }
 
-// PHYSICS
+// SHARED PHYSICS
+// Used by both the real ball and the
+// trajectory preview.
 
 function makeState(velocity){
 return{
 p:START.clone(),v:velocity.clone(),age:0,banks:0,contacts:0,
 cooldown:0,groundTime:0,scored:false,perfect:false,done:false,
-events:[],lastImpact:0,settled:false
+events:[],lastImpact:0,settled:false,bankTypes:[]
 };
 }
+
 function rebound(s,n,e,bank=true,type="object"){
 const speed=s.v.dot(n);
 if(speed>=-.01)return false;
 const impact=-speed;
 let bounce=e;
-if((type==="wall"||type==="computer")&&impact>1.1)
+if((type==="wall"||type==="computer"||type===BANK_WALL||type===BANK_COMPUTER)&&impact>1.1)
 bounce=Math.min(.94,e+.035);
 if(impact<.13)bounce=Math.min(bounce,.3);
+
 s.v.addScaledVector(n,-(1+bounce)*speed);
 const normalSpeed=s.v.dot(n);
 const tangent=s.v.clone().addScaledVector(n,-normalSpeed);
-const friction=type==="desk"?.965:type==="wall"?.992:type==="computer"?.985:.975;
+const friction=type==="desk"?.965:
+(type==="wall"||type===BANK_WALL)?.992:
+(type==="computer"||type===BANK_COMPUTER)?.985:.975;
 s.v.copy(n.clone().multiplyScalar(normalSpeed));
 s.v.addScaledVector(tangent,friction);
+
 s.contacts++;s.lastImpact=impact;
 if(bank&&impact>PHYSICS.minimumBankSpeed){
 s.banks++;
 if(s.events.length<30)s.events.push(s.p.clone());
+if(!s.bankTypes.includes(type))s.bankTypes.push(type);
 }
 return true;
 }
+
 function collideRoom(s,dt){
 const p=s.p;
 if(p.x<-4.35+R){
@@ -922,16 +929,11 @@ s.groundTime+=Math.abs(s.v.y)<.5?dt:0;
 }else s.groundTime=0;
 }
 
-// V0.9.21 ROTATED FURNITURE COLLISIONS
-// Transform the ball into the local
-// coordinate system of each obstacle,
-// calculate collision, then rotate the
-// normal back into world space.
-
 function collideFurniture(s){
 for(const b of obstacles){
 const relative=s.p.clone().sub(b.c);
 
+// World to local rotated-box coordinates.
 const local=V(
 relative.x*b.cos-relative.z*b.sin,
 relative.y,
@@ -966,7 +968,7 @@ normal.setComponent(axis,Math.sign(local.getComponent(axis))||1);
 depth=R+faces[0].d;
 }
 
-// Rotate normal back into world space.
+// Local normal to world normal.
 const worldNormal=V(
 normal.x*b.cos+normal.z*b.sin,
 normal.y,
@@ -974,7 +976,14 @@ normal.y,
 ).normalize();
 
 s.p.addScaledVector(worldNormal,depth+.001);
-rebound(s,worldNormal,b.e,true,b.type);
+
+let type=b.type;
+if(type==="computer"&&b.angle===COMPUTER_ANGLE)
+type=BANK_COMPUTER;
+if(type==="wall"&&b.angle===WALL_BANK_ANGLE)
+type=BANK_WALL;
+
+rebound(s,worldNormal,b.e,true,type);
 }
 }
 
@@ -990,9 +999,7 @@ const z=previous.z+(p.z-previous.z)*t;
 const dist=Math.hypot(x-cx,z-BIN_Z);
 const opening=BIN_R-R+PHYSICS.scoreOpeningExtra;
 if(dist<opening){
-s.scored=true;
-s.perfect=dist<BIN_R*.27;
-s.done=true;
+s.scored=true;s.perfect=dist<BIN_R*.27;s.done=true;
 return;
 }
 }
@@ -1005,13 +1012,10 @@ radial.x*(horizontal-BIN_R),
 p.y-BIN_TOP,
 radial.z*(horizontal-BIN_R)
 ).normalize();
-
 if(normal.lengthSq()<.01)normal.set(0,1,0);
 const incoming=s.v.clone();
-
 if(rebound(s,normal,PHYSICS.rimBounce,false,"rim")){
 p.addScaledVector(normal,.016);
-
 if(incoming.y<-.3&&horizontal>BIN_R*.78&&horizontal<BIN_R+R+.035){
 const inward=V(cx-p.x,0,BIN_Z-p.z).normalize();
 s.v.addScaledVector(inward,PHYSICS.rimInwardAssist);
@@ -1048,7 +1052,7 @@ collideBin(s,previous,cx);
 if(s.age>5||(s.age>1.2&&s.groundTime>.65))s.done=true;
 }
 
-// GUIDE
+// TRAJECTORY PREVIEW
 
 function drawGuide(dx,dy){
 if(!guideOn){hideGuide();return;}
@@ -1077,9 +1081,20 @@ d.visible=i<sim.events.length;
 if(d.visible)d.position.copy(sim.events[i]);
 }
 
-$("aim").textContent=sim.scored?
-(sim.banks?"PREDICTED BANK SHOT!":"PREDICTED SCORE!"):
-sim.banks?"REBOUND PATH · "+sim.banks+" BOUNCE(S)":"AIM ACROSS THE DESK";
+if(sim.scored){
+if(sim.bankTypes.includes(BANK_COMPUTER))
+$("aim").textContent="COMPUTER BANK — PREDICTED SCORE!";
+else if(sim.bankTypes.includes(BANK_WALL))
+$("aim").textContent="WALL BANK — PREDICTED SCORE!";
+else if(sim.banks)
+$("aim").textContent="LUCKY BANK — PREDICTED SCORE!";
+else
+$("aim").textContent="PREDICTED SCORE!";
+}else{
+$("aim").textContent=sim.banks?
+"REBOUND PATH · "+sim.banks+" BOUNCE(S)":
+"AIM FOR A HIGHLIGHTED BANK SURFACE";
+}
 }
 
 function launch(dx,dy){
@@ -1092,20 +1107,17 @@ hideGuide();
 trailPoints=[];
 trail.visible=effectsOn;
 $("power").textContent="POWER: "+Math.round(data.power*100)+"%";
-message("");
-beep(470);
+message("");beep(470);
 }
 
 // TOUCH
 
 const canvas=$("game");
-
 canvas.addEventListener("pointerdown",e=>{
 if(screen!=="playing"||over||locked||shot)return;
 touch={x:e.clientX,y:e.clientY};
 try{canvas.setPointerCapture(e.pointerId);}catch(err){}
 });
-
 canvas.addEventListener("pointermove",e=>{
 if(!touch||screen!=="playing"||shot)return;
 const dx=e.clientX-touch.x,dy=e.clientY-touch.y;
@@ -1113,16 +1125,13 @@ if(dy>=-15){hideGuide();return;}
 drawGuide(dx,dy);
 $("power").textContent="POWER: "+Math.round(swipeToPower(-dy)*100)+"%";
 });
-
 canvas.addEventListener("pointerup",e=>{
 if(!touch||screen!=="playing"||locked||shot)return;
 const dx=e.clientX-touch.x,dy=e.clientY-touch.y;
-touch=null;
-hideGuide();
+touch=null;hideGuide();
 if(dy>=-20)return;
 launch(dx,dy);
 });
-
 canvas.addEventListener("pointercancel",()=>{
 touch=null;hideGuide();
 });
@@ -1163,7 +1172,6 @@ function update(dt){
 if(screen!=="playing")return;
 targetPhase+=dt;
 const c=activeChallenge();
-
 targetGroup.position.x=mode==="challenge"&&c?.moving?
 BIN_X+Math.sin(targetPhase*1.25)*.08:BIN_X;
 
@@ -1247,8 +1255,7 @@ price.textContent=s.price?s.price+" coins":"Free";
 const btn=document.createElement("button");
 
 if(equipped===s.id){
-btn.textContent="EQUIPPED";
-btn.disabled=true;
+btn.textContent="EQUIPPED";btn.disabled=true;
 }else if(owned.includes(s.id)){
 btn.textContent="EQUIP";
 btn.onclick=()=>{
@@ -1309,14 +1316,12 @@ showScreen("menu");
 $("again").onclick=()=>{
 if(mode==="challenge"&&completed.includes(challengeId))
 showScreen("challenges");
-else
-startGame(mode,challengeId);
+else startGame(mode,challengeId);
 };
 
-// LOOP
+// MAIN LOOP
 
 const clock=new THREE.Clock();
-
 function frame(){
 requestAnimationFrame(frame);
 const dt=Math.min(.04,clock.getDelta());
