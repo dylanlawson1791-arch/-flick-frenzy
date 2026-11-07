@@ -5,7 +5,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="theme-color" content="#433650">
-<title>Flick Frenzy V0.9.14</title>
+<title>Flick Frenzy V0.9.16</title>
 <style>
 *{box-sizing:border-box}
 html,body{margin:0;width:100%;height:100%;overflow:hidden}
@@ -46,7 +46,7 @@ button:disabled{opacity:.45}
 <div id="loading">
 <div>
 <h1>FLICK FRENZY</h1>
-<p>Preparing free-aim physics...</p>
+<p>Preparing trick-shot physics...</p>
 </div>
 </div>
 
@@ -81,7 +81,7 @@ button:disabled{opacity:.45}
 <button class="menuBtn" id="challengeBtn">CHALLENGES</button>
 <button class="menuBtn secondary" id="shopBtn">BALL SHOP</button>
 <button class="menuBtn secondary" id="settingsBtn">SETTINGS</button>
-<p style="font-size:12px">V0.9.14 · Free aim and environmental rebounds</p>
+<p style="font-size:12px">V0.9.16 · Enhanced rebound physics</p>
 </div>
 </div>
 
@@ -109,7 +109,7 @@ button:disabled{opacity:.45}
 <div class="row"><strong>Sound</strong><button id="soundToggle"></button></div>
 <div class="row"><strong>Effects</strong><button id="effectsToggle"></button></div>
 <div class="row"><strong>Trajectory guide</strong><button id="guideToggle"></button></div>
-<p>Swipe upward to throw. Swipe diagonally to aim left or right. The ball is not automatically directed towards the bin.</p>
+<p>Swipe upward to throw higher. Swipe diagonally to aim sideways. Rebound shots use real office surfaces.</p>
 <button class="menuBtn secondary" id="settingsBack">BACK</button>
 </div>
 </div>
@@ -123,12 +123,26 @@ const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 const G=9.8;
 const R=.065;
 
+// Higher release position from V0.9.15.
 const START=new THREE.Vector3(-.23,1.13,.48);
 
 const BIN_X=.67;
 const BIN_Z=-.72;
 const BIN_R=.29;
 const BIN_H=.52;
+
+// V0.9.16 rebound tuning.
+const PHYSICS={
+wallBounce:.88,
+computerBounce:.83,
+deskBounce:.69,
+objectBounce:.75,
+floorBounce:.57,
+rimBounce:.76,
+rimInwardAssist:.12,
+scoreOpeningExtra:.028,
+minimumBankSpeed:.4
+};
 
 const skins=[
 {id:"classic",name:"Classic Neon",price:0,color:"#75dce8",glow:"#32a6ba"},
@@ -187,7 +201,7 @@ localStorage.setItem("ff_guide",JSON.stringify(guideOn));
 }
 
 // =====================================
-// RENDERER AND CAMERA
+// CAMERA AND LIGHTING
 // =====================================
 
 const scene=new THREE.Scene();
@@ -196,7 +210,7 @@ scene.fog=new THREE.Fog("#9d8292",9,22);
 
 const camera=new THREE.PerspectiveCamera(69,1,.035,35);
 
-// Same camera position as V0.9.13.
+// Preserve current camera distance.
 camera.position.set(0,1.38,1.52);
 camera.lookAt(.12,1.24,-1.4);
 
@@ -239,9 +253,7 @@ lampLight.position.set(-1.25,2.5,-1.8);
 scene.add(lampLight);
 
 const mat=(c,r=.8,metal=.02)=>new THREE.MeshStandardMaterial({
-color:c,
-roughness:r,
-metalness:metal
+color:c,roughness:r,metalness:metal
 });
 
 const M={
@@ -284,12 +296,9 @@ n=Math.floor(Math.random()*palettes.length);
 }while(n===paletteIndex);
 
 paletteIndex=n;
-
 const p=palettes[n];
 
-for(const k in M){
-M[k].color.set(p[k]);
-}
+for(const k in M)M[k].color.set(p[k]);
 
 scene.background.set(p.back);
 scene.fog.color.set(p.back);
@@ -333,31 +342,27 @@ new THREE.CylinderGeometry(r,r,v.length(),10),
 m,mid.x,mid.y,mid.z,parent
 );
 
-o.quaternion.setFromUnitVectors(
-V(0,1,0),
-v.normalize()
-);
-
+o.quaternion.setFromUnitVectors(V(0,1,0),v.normalize());
 return o;
 }
 
-// All collision boxes are axis aligned.
-// This is an approximation of the visible
-// furniture, not automatic target guidance.
+// Collision surfaces are attached to
+// actual visible furniture.
 
 const obstacles=[];
 
-function collisionBox(w,h,d,x,y,z,restitution=.65){
+function collisionBox(w,h,d,x,y,z,restitution=.7,type="object"){
 obstacles.push({
 c:V(x,y,z),
 h:V(w/2,h/2,d/2),
-e:restitution
+e:restitution,
+type
 });
 }
 
-function solid(w,h,d,m,x,y,z,restitution=.65){
+function solid(w,h,d,m,x,y,z,restitution=.7,type="object"){
 const o=box(w,h,d,m,x,y,z);
-collisionBox(w,h,d,x,y,z,restitution);
+collisionBox(w,h,d,x,y,z,restitution,type);
 return o;
 }
 
@@ -374,8 +379,7 @@ t.colorSpace=THREE.SRGBColorSpace;
 t.anisotropy=4;
 
 return new THREE.MeshBasicMaterial({
-map:t,
-side:THREE.DoubleSide
+map:t,side:THREE.DoubleSide
 });
 }
 
@@ -407,7 +411,7 @@ box(w,h,.023,m,x,y,z+.02);
 }
 
 // =====================================
-// CURVED WRAPAROUND DESK
+// CURVED OFFICE DESK
 // =====================================
 
 function roundedDeskShape(){
@@ -451,7 +455,7 @@ desk.receiveShadow=true;
 }
 
 // =====================================
-// OFFICE STRUCTURE
+// CUBICLE
 // =====================================
 
 box(9,.18,10,M.floor,0,-.09,-1.2);
@@ -459,12 +463,10 @@ box(9,4,.14,M.back,0,2,-5.5);
 box(.15,4,10,M.back,-4.5,2,-1.2);
 box(.15,4,10,M.back,4.5,2,-1.2);
 
-// Real cubicle partitions.
-// No additional trick-shot walls.
-
-solid(4.4,2.55,.1,M.wall,0,1.275,-2.55,.72);
-solid(.1,2.55,4.0,M.wall,-2.22,1.275,-.55,.72);
-solid(.1,2.55,4.0,M.wall,2.22,1.275,-.55,.72);
+// High-energy cubicle rebounds.
+solid(4.4,2.55,.1,M.wall,0,1.275,-2.55,PHYSICS.wallBounce,"wall");
+solid(.1,2.55,4,M.wall,-2.22,1.275,-.55,PHYSICS.wallBounce,"wall");
+solid(.1,2.55,4,M.wall,2.22,1.275,-.55,PHYSICS.wallBounce,"wall");
 
 box(4.5,.055,.13,chrome,0,2.57,-2.55);
 
@@ -482,20 +484,9 @@ box(.012,.012,3.95,M.trim,-2.16,y,-.55);
 box(.012,.012,3.95,M.trim,2.16,y,-.55);
 }
 
-const poster1=textPanel(
-["BURGER","BREAK!"],
-"#ad604f","#f8d18c"
-);
-
-const poster2=textPanel(
-["WORK","SMARTER"],
-"#587c87","#f6e8cf"
-);
-
-const poster3=textPanel(
-["YOU GOT","THIS!"],
-"#c6a16a","#3e3548"
-);
+const poster1=textPanel(["BURGER","BREAK!"],"#ad604f","#f8d18c");
+const poster2=textPanel(["WORK","SMARTER"],"#587c87","#f6e8cf");
+const poster3=textPanel(["YOU GOT","THIS!"],"#c6a16a","#3e3548");
 
 poster(poster1,-1.45,1.63,-2.47,.7,.85);
 poster(poster2,.78,1.69,-2.47,.67,.75);
@@ -538,35 +529,35 @@ for(let i=0;i<4;i++){
 const x=-.15+i*.23;
 const y=1.6+(i%2)*.12;
 
-box(.19,.18,.016,
-[yellow,coral,cyan,cream][i],
-x,y,-2.46);
-
+box(.19,.18,.016,[yellow,coral,cyan,cream][i],x,y,-2.46);
 sphere(.018,black,x,y+.075,-2.435);
 }
 
 // =====================================
-// DESK AND COLLISION SURFACES
+// DESK COLLISIONS
 // =====================================
 
 roundedDeskShape();
 
-// These are physics-only surfaces.
-// They do not add visible walls or blocks.
+// Match the three visible sections of
+// the wraparound desk. No added panels.
 
 collisionBox(
 2.1,.13,.95,
-0,.78,-1.75,.66
+0,.78,-1.75,
+PHYSICS.deskBounce,"desk"
 );
 
 collisionBox(
 .74,.13,1.55,
--1.41,.78,-.57,.66
+-1.41,.78,-.57,
+PHYSICS.deskBounce,"desk"
 );
 
 collisionBox(
 .74,.13,1.55,
-1.41,.78,-.57,.66
+1.41,.78,-.57,
+PHYSICS.deskBounce,"desk"
 );
 
 for(const x of [-1.68,1.68]){
@@ -575,7 +566,8 @@ box(.07,.72,.07,chrome,x,.36,-1.95);
 
 solid(
 .55,.67,.65,
-M.cabinet,-1.52,.35,-1.78,.55
+M.cabinet,-1.52,.35,-1.78,
+PHYSICS.objectBounce,"object"
 );
 
 for(const y of [.18,.39,.58]){
@@ -589,8 +581,11 @@ box(2.12,.035,.035,wood,0,.73,-1.26);
 // COMPUTER
 // =====================================
 
-// The monitor casing is a rebound surface.
-solid(.91,.78,.48,cream,-.05,1.29,-1.96,.68);
+solid(
+.91,.78,.48,
+cream,-.05,1.29,-1.96,
+PHYSICS.computerBounce,"computer"
+);
 
 box(.82,.66,.03,black,-.05,1.33,-1.695);
 
@@ -627,49 +622,50 @@ c.fillText(labels[i],x,y+68);
 });
 
 box(.75,.56,.032,monitorTexture,-.05,1.35,-1.672);
-
 sphere(.021,plant,.29,.97,-1.66);
 box(.085,.05,.026,coral,.36,.97,-1.66);
 
-solid(.25,.12,.22,cream,-.05,.87,-1.93,.6);
+solid(
+.25,.12,.22,
+cream,-.05,.87,-1.93,
+PHYSICS.objectBounce,"object"
+);
+
 box(.65,.055,.37,cream,-.05,.8,-1.89);
 
-// Keyboard.
-solid(.85,.045,.28,cream,-.06,.86,-1.39,.55);
+solid(
+.85,.045,.28,
+cream,-.06,.86,-1.39,
+PHYSICS.objectBounce,"object"
+);
 
 for(let row=0;row<3;row++){
 for(let col=0;col<10;col++){
 box(
 .061,.013,.06,
 (row+col)%11===0?coral:black,
--.425+col*.081,
-.892,
--1.48+row*.082
+-.425+col*.081,.892,-1.48+row*.082
 );
 }
 }
 
-// Mouse.
 box(.31,.012,.32,M.trim,.65,.835,-1.4);
 
 const mouse=sphere(.09,cream,.65,.88,-1.4);
 mouse.scale.set(.72,.45,1.25);
 
 // =====================================
-// OFFICE CLUTTER
+// OFFICE DECORATIONS
 // =====================================
 
-solid(.37,.13,.3,black,-1.42,.94,-.65,.5);
-
+solid(.37,.13,.3,black,-1.42,.94,-.65,.7,"object");
 box(.3,.035,.095,M.cabinet,-1.42,1.04,-.75);
 
 for(let r=0;r<3;r++){
 for(let col=0;col<3;col++){
 box(
 .048,.013,.045,cream,
--1.51+col*.09,
-1.018,
--.61+r*.08
+-1.51+col*.09,1.018,-.61+r*.08
 );
 }
 }
@@ -677,7 +673,6 @@ box(
 const receiver=box(.34,.08,.075,dark,-1.42,1.1,-.79);
 receiver.rotation.z=-.12;
 
-// Coffee mug.
 cyl(.13,.115,.22,cream,1.45,.96,-.62);
 cyl(.115,.115,.008,coffee,1.45,1.076,-.62);
 
@@ -688,18 +683,13 @@ cream,1.6,.97,-.62
 handle.rotation.y=Math.PI/2;
 
 for(let i=0;i<3;i++){
-box(
-.43,.045,.3,
-[coral,cyan,yellow][i],
--1.47,.87+i*.049,-1.22
-);
+box(.43,.045,.3,[coral,cyan,yellow][i],-1.47,.87+i*.049,-1.22);
 }
 
 for(let i=0;i<4;i++){
 box(.3,.006,.007,dark,-1.48,.895,-1.34+i*.055);
 }
 
-// Desk fan.
 cyl(.13,.15,.04,black,-1.66,.87,-1.9);
 
 tube(
@@ -724,7 +714,6 @@ const blade=sphere(
 blade.scale.set(.85,.55,.16);
 }
 
-// Shelf and books.
 box(.75,.055,.3,wood,1.48,1.48,-2.27);
 box(.045,.55,.32,wood,1.09,1.21,-2.27);
 box(.045,.55,.32,wood,1.87,1.21,-2.27);
@@ -733,13 +722,10 @@ for(let i=0;i<5;i++){
 box(
 .11,.27+(i%2)*.08,.22,
 [coral,cyan,yellow,M.cabinet,M.chair][i],
-1.19+i*.14,
-1.65,
--2.26
+1.19+i*.14,1.65,-2.26
 );
 }
 
-// Plant.
 cyl(.14,.105,.19,M.accent,1.46,.93,-1.78);
 
 for(let i=0;i<7;i++){
@@ -747,17 +733,12 @@ const a=i*Math.PI*2/7;
 const x=1.46+Math.cos(a)*.16;
 const z=-1.78+Math.sin(a)*.16;
 
-tube(
-V(1.46,1.04,-1.78),
-V(x,1.35,z),
-.015,plant
-);
+tube(V(1.46,1.04,-1.78),V(x,1.35,z),.015,plant);
 
 const leaf=sphere(.095,plant,x,1.35,z);
 leaf.scale.set(.7,1,.45);
 }
 
-// Lamp.
 cyl(.14,.15,.045,black,-1.54,.86,-1.9);
 
 tube(
@@ -772,7 +753,6 @@ M.accent,-1.61,1.46,-1.91
 );
 shade.rotation.z=.35;
 
-// Snack.
 cyl(.2,.2,.018,cream,1.45,.86,-.08);
 
 const donut=mesh(
@@ -782,7 +762,7 @@ yellow,1.45,.925,-.08
 donut.rotation.x=Math.PI/2;
 
 // =====================================
-// WASTEPAPER BIN
+// BIN
 // =====================================
 
 const targetGroup=new THREE.Group();
@@ -831,7 +811,6 @@ START.x,START.y,START.z
 
 const handGroup=new THREE.Group();
 scene.add(handGroup);
-
 handGroup.position.set(-.23,.91,.55);
 
 const palm=sphere(.095,skin,0,0,0,handGroup);
@@ -840,18 +819,13 @@ palm.scale.set(1,.7,1.25);
 for(let i=0;i<4;i++){
 const f=sphere(
 .027,skin,
--.062+i*.04,
-.04,-.06,
+-.062+i*.04,.04,-.06,
 handGroup
 );
 f.scale.set(.8,1.4,1.35);
 }
 
-const sleeve=box(
-.2,.15,.2,
-M.chair,0,-.13,.1,
-handGroup
-);
+const sleeve=box(.2,.15,.2,M.chair,0,-.13,.1,handGroup);
 sleeve.rotation.x=-.22;
 
 const ballLight=new THREE.PointLight("#79cbd7",.45,1);
@@ -869,11 +843,8 @@ scene.add(trail);
 trail.visible=false;
 
 // =====================================
-// CLEAR TRAJECTORY GUIDE
+// TRAJECTORY GUIDE
 // =====================================
-
-// Larger dots and contrasting rebound
-// markers help make the path visible.
 
 const guideDots=[];
 const dotMaterial=new THREE.MeshBasicMaterial({
@@ -885,8 +856,7 @@ depthWrite:false
 for(let i=0;i<80;i++){
 const d=mesh(
 new THREE.SphereGeometry(.028,8,6),
-dotMaterial,
-0,-100,0
+dotMaterial,0,-100,0
 );
 
 d.visible=false;
@@ -1020,9 +990,7 @@ if(mode!=="challenge"||!c)return;
 const left=c.limit?
 Math.max(
 0,
-Math.ceil(
-c.limit-(performance.now()-challengeStart)/1000
-)
+Math.ceil(c.limit-(performance.now()-challengeStart)/1000)
 ):null;
 
 $("goal").textContent=
@@ -1117,12 +1085,12 @@ updateLabel();
 updateGoal();
 
 $("hint").textContent=
-"Swipe up or diagonally · Aim anywhere";
+"Swipe to aim · Bank shots earn bonuses";
 
 $("power").textContent="";
 
 showScreen("playing");
-message("FREE AIM ENABLED!",1100);
+message("TRICK SHOTS READY!",1100);
 }
 
 function completeChallenge(){
@@ -1278,7 +1246,7 @@ resetBall();
 }
 
 // =====================================
-// ORIGINAL SWIPE POWER SENSITIVITY
+// ORIGINAL SWIPE POWER CURVE
 // =====================================
 
 function swipeToPower(swipeDistance){
@@ -1286,70 +1254,56 @@ const normalized=clamp(
 (swipeDistance/innerHeight-.06)/.36,
 0,1
 );
+
 if(normalized<.25){
 return(normalized/.25)*.40;
 }
+
 if(normalized<=.75){
 return .40+(normalized-.25)*.40;
 }
+
 return .60+((normalized-.75)/.25)*.40;
 }
 
 // =====================================
-// NEW FREE-AIM THROWING
+// HIGH-ARC FREE AIM
 // =====================================
 
-// IMPORTANT:
-// This function does not read BIN_X,
-// BIN_Z, or the bin's position.
-//
-// Straight upward swipes travel straight.
-// Diagonal swipes steer the ball.
-// Power affects launch speed and arc.
-//
-// The player must discover a trajectory
-// that reaches the target.
-
 function launchVelocity(dx,dy){
+const swipeDistance=Math.max(0,-dy);
 
-  const swipeDistance=Math.max(0,-dy);
+const power=swipeToPower(swipeDistance);
 
-  // Keep original swipe-power sensitivity.
-  const power=swipeToPower(swipeDistance);
+const sideways=clamp(
+dx/(innerWidth*.35),
+-1,1
+);
 
-  // Horizontal aiming remains fully independent.
-  const sideways=clamp(
-    dx/(innerWidth*.35),
-    -1,1
-  );
+const elevation=clamp(
+swipeDistance/(innerHeight*.42),
+0,1
+);
 
-  // Swipe distance also controls elevation.
-  // Short swipes: low, flat throws.
-  // Long swipes: high, arcing throws.
-  const elevation=clamp(
-    swipeDistance/(innerHeight*.42),
-    0,1
-  );
+// Higher arcs from V0.9.15.
+const vertical=1.3+elevation*5.2;
 
-  // Higher throws gain more upward velocity.
-  const vertical=1.3+elevation*5.2;
+// Slight forward boost gives the ball
+// more opportunities to rebound.
+const forward=1.8+power*1.5;
 
-  // Forward movement stays strong enough
-  // to reach the desk and cubicle walls.
-  const forward=1.8+power*1.5;
+const lateral=sideways*(2+power*1.6);
 
-  // Free left/right aiming.
-  const lateral=sideways*(2.0+power*1.6);
-
-  return{
-    power,
-    velocity:new THREE.Vector3(
-      lateral,
-      vertical,
-      -forward
-    )
-  };
+return{
+power,
+velocity:V(lateral,vertical,-forward)
+};
 }
+
+// =====================================
+// REBOUND PHYSICS V0.9.16
+// =====================================
+
 function makeState(velocity){
 return{
 p:START.clone(),
@@ -1362,19 +1316,62 @@ groundTime:0,
 scored:false,
 perfect:false,
 done:false,
-events:[]
+events:[],
+lastImpact:0
 };
 }
 
-function rebound(s,n,e,bank=true){
+// Angle-based reflection with mild
+// energy retention on strong impacts.
+
+function rebound(s,n,e,bank=true,type="object"){
 const speed=s.v.dot(n);
 
 if(speed>=-.01)return false;
 
-s.v.addScaledVector(n,-(1+e)*speed);
-s.contacts++;
+const impact=-speed;
 
-if(bank){
+// Strong wall and computer impacts
+// retain more useful rebound speed.
+let bounce=e;
+
+if(
+(type==="wall"||type==="computer")&&
+impact>1.1
+){
+bounce=Math.min(.94,e+.035);
+}
+
+// Reduce weak jitter near surfaces.
+if(impact<.13){
+bounce=Math.min(bounce,.3);
+}
+
+s.v.addScaledVector(
+n,
+-(1+bounce)*speed
+);
+
+// Small tangential damping prevents
+// endless sliding along objects.
+const normalSpeed=s.v.dot(n);
+const tangent=s.v.clone().addScaledVector(n,-normalSpeed);
+
+const friction=
+type==="desk"?.965:
+type==="wall"?.992:
+type==="computer"?.985:.975;
+
+s.v.copy(n.clone().multiplyScalar(normalSpeed));
+s.v.addScaledVector(tangent,friction);
+
+s.contacts++;
+s.lastImpact=impact;
+
+if(
+bank&&
+impact>PHYSICS.minimumBankSpeed
+){
 s.banks++;
 
 if(s.events.length<30){
@@ -1390,36 +1387,42 @@ const p=s.p;
 
 if(p.x<-4.35+R){
 p.x=-4.35+R;
-rebound(s,V(1,0,0),.65);
+rebound(s,V(1,0,0),PHYSICS.wallBounce,true,"wall");
 }
 
 if(p.x>4.35-R){
 p.x=4.35-R;
-rebound(s,V(-1,0,0),.65);
+rebound(s,V(-1,0,0),PHYSICS.wallBounce,true,"wall");
 }
 
 if(p.z<-5.35+R){
 p.z=-5.35+R;
-rebound(s,V(0,0,1),.65);
+rebound(s,V(0,0,1),PHYSICS.wallBounce,true,"wall");
 }
 
 if(p.z>3.7-R){
 p.z=3.7-R;
-rebound(s,V(0,0,-1),.65);
+rebound(s,V(0,0,-1),PHYSICS.wallBounce,true,"wall");
 }
 
 if(p.y>3.8-R){
 p.y=3.8-R;
-rebound(s,V(0,-1,0),.6);
+rebound(s,V(0,-1,0),.7,true,"wall");
 }
 
 if(p.y<R){
 p.y=R;
 
 if(s.v.y<-.2){
-rebound(s,V(0,1,0),.55,false);
-s.v.x*=.92;
-s.v.z*=.92;
+rebound(
+s,V(0,1,0),
+PHYSICS.floorBounce,
+false,"floor"
+);
+
+s.v.x*=.94;
+s.v.z*=.94;
+
 }else{
 s.v.y=0;
 
@@ -1453,23 +1456,15 @@ let normal,depth;
 
 if(d2>1e-10){
 const d=Math.sqrt(d2);
+
 normal=delta.multiplyScalar(1/d);
 depth=R-d;
 
 }else{
 const faces=[
-{
-d:b.h.x-Math.abs(local.x),
-axis:0
-},
-{
-d:b.h.y-Math.abs(local.y),
-axis:1
-},
-{
-d:b.h.z-Math.abs(local.z),
-axis:2
-}
+{d:b.h.x-Math.abs(local.x),axis:0},
+{d:b.h.y-Math.abs(local.y),axis:1},
+{d:b.h.z-Math.abs(local.z),axis:2}
 ];
 
 faces.sort((a,b)=>a.d-b.d);
@@ -1487,9 +1482,20 @@ depth=R+faces[0].d;
 }
 
 s.p.addScaledVector(normal,depth+.001);
-rebound(s,normal,b.e);
+
+rebound(
+s,
+normal,
+b.e,
+true,
+b.type
+);
 }
 }
+
+// =====================================
+// IMPROVED BIN INTERACTIONS
+// =====================================
 
 function collideBin(s,previous,cx){
 const p=s.p;
@@ -1499,8 +1505,8 @@ const dz=p.z-BIN_Z;
 
 const horizontal=Math.hypot(dx,dz);
 
-// A score is only possible when the ball
-// passes down through the bin opening.
+// Score only on a genuine downward
+// crossing of the bin opening.
 
 if(
 previous.y>=BIN_H&&
@@ -1515,12 +1521,14 @@ const t=clamp(
 const x=previous.x+(p.x-previous.x)*t;
 const z=previous.z+(p.z-previous.z)*t;
 
-const dist=Math.hypot(
-x-cx,
-z-BIN_Z
-);
+const dist=Math.hypot(x-cx,z-BIN_Z);
 
-if(dist<BIN_R-R-.015){
+// Slightly more forgiving scoring,
+// but no automatic aim correction.
+const opening=
+BIN_R-R+PHYSICS.scoreOpeningExtra;
+
+if(dist<opening){
 s.scored=true;
 s.perfect=dist<BIN_R*.27;
 s.done=true;
@@ -1528,7 +1536,7 @@ return;
 }
 }
 
-// Physical rim rebound.
+// Improved rim bounce.
 const ringDistance=Math.hypot(
 horizontal-BIN_R,
 p.y-BIN_H
@@ -1554,13 +1562,43 @@ if(normal.lengthSq()<.01){
 normal.set(0,1,0);
 }
 
-if(rebound(s,normal,.55,false)){
-p.addScaledVector(normal,.015);
-s.cooldown=.1;
+const incoming=s.v.clone();
+
+if(
+rebound(
+s,normal,
+PHYSICS.rimBounce,
+false,"rim"
+)
+){
+p.addScaledVector(normal,.016);
+
+// When a ball is already descending
+// and catches the outer rim, a small
+// inward deflection can make a genuine
+// rim-in shot possible.
+//
+// This does not guide distant shots.
+if(
+incoming.y<-.3&&
+horizontal>BIN_R*.78&&
+horizontal<BIN_R+R+.035
+){
+const inward=V(
+cx-p.x,0,BIN_Z-p.z
+).normalize();
+
+s.v.addScaledVector(
+inward,
+PHYSICS.rimInwardAssist
+);
+}
+
+s.cooldown=.085;
 }
 }
 
-// Bin wall collision.
+// Physical bin walls.
 if(
 p.y>R&&
 p.y<BIN_H-R*.3&&
@@ -1586,7 +1624,9 @@ p.z=BIN_Z+radial.z*(
 BIN_R+(inside?-R:R)
 );
 
-rebound(s,normal,.55,false);
+rebound(
+s,normal,.58,false,"bin"
+);
 }
 }
 
@@ -1614,15 +1654,8 @@ s.done=true;
 }
 
 // =====================================
-// PREVIEW TRAJECTORY
+// ACCURATE TRAJECTORY PREVIEW
 // =====================================
-
-// The preview and real ball both use
-// physicsStep(), with no hidden
-// target correction.
-//
-// A moving bin can change position
-// during the actual flight.
 
 function drawGuide(dx,dy){
 if(!guideOn){
@@ -1648,7 +1681,6 @@ points.push(sim.p.clone());
 if(sim.done)break;
 }
 
-// Spread dots along the entire preview.
 for(let i=0;i<guideDots.length;i++){
 const idx=Math.floor(
 i*(points.length-1)/
@@ -1656,7 +1688,6 @@ Math.max(1,guideDots.length-1)
 );
 
 const d=guideDots[i];
-
 d.visible=points.length>1;
 
 if(d.visible){
@@ -1685,7 +1716,7 @@ sim.scored?
 "PREDICTED SCORE!"):
 sim.banks?
 "REBOUND PATH · "+sim.banks+" BOUNCE(S)":
-"FREE AIM · ADJUST YOUR SWIPE";
+"AIM FOR A TRICK SHOT";
 }
 
 function launch(dx,dy){
@@ -1805,11 +1836,12 @@ ball.rotation.z-=shot.v.x*dt*.45;
 
 ballLight.position.copy(ball.position);
 
-// Perspective, not automatic shrinking.
 ball.scale.set(1,1,1);
 
 if(shot.contacts>before){
-beep(320);
+beep(
+shot.lastImpact>1.5?420:320
+);
 }
 
 if(effectsOn){
@@ -1864,7 +1896,7 @@ updateBall(dt);
 }
 
 // =====================================
-// CHALLENGES
+// CHALLENGE MENU
 // =====================================
 
 function renderChallenges(){
@@ -1877,10 +1909,7 @@ challenges.filter(c=>completed.includes(c.id)).length+
 " / "+challenges.length;
 
 for(const tier of [
-"Rookie",
-"Skilled",
-"Expert",
-"Legend"
+"Rookie","Skilled","Expert","Legend"
 ]){
 const heading=document.createElement("h3");
 heading.textContent=tier;
@@ -2094,10 +2123,7 @@ const clock=new THREE.Clock();
 function frame(){
 requestAnimationFrame(frame);
 
-const dt=Math.min(
-.04,
-clock.getDelta()
-);
+const dt=Math.min(.04,clock.getDelta());
 
 update(dt);
 renderer.render(scene,camera);
