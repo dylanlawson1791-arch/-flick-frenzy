@@ -5,11 +5,11 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="theme-color" content="#433650">
-<title>Flick Frenzy V0.9.17</title>
+<title>Flick Frenzy V0.9.18</title>
 <style>
 *{box-sizing:border-box}
 html,body{margin:0;width:100%;height:100%;overflow:hidden}
-body{font-family:system-ui,Arial;background:#433650;color:white;touch-action:none;user-select:none}
+body{font-family:system-ui,Arial;background:#433650;color:#fff;touch-action:none;user-select:none}
 canvas{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none}
 .screen{position:absolute;inset:0;z-index:5;display:none;align-items:center;justify-content:center;padding:15px;background:linear-gradient(145deg,#b67fa7,#8074b1,#79c6bd)}
 .screen.active{display:flex}
@@ -46,7 +46,7 @@ button:disabled{opacity:.45}
 <div id="loading">
 <div>
 <h1>FLICK FRENZY</h1>
-<p>Preparing your new cubicle...</p>
+<p>Loading the office...</p>
 </div>
 </div>
 
@@ -81,7 +81,7 @@ button:disabled{opacity:.45}
 <button class="menuBtn" id="challengeBtn">CHALLENGES</button>
 <button class="menuBtn secondary" id="shopBtn">BALL SHOP</button>
 <button class="menuBtn secondary" id="settingsBtn">SETTINGS</button>
-<p style="font-size:12px">V0.9.17 · Angled office</p>
+<p style="font-size:12px">V0.9.18 · Angled trick shots</p>
 </div>
 </div>
 
@@ -109,7 +109,7 @@ button:disabled{opacity:.45}
 <div class="row"><strong>Sound</strong><button id="soundToggle"></button></div>
 <div class="row"><strong>Effects</strong><button id="effectsToggle"></button></div>
 <div class="row"><strong>Trajectory guide</strong><button id="guideToggle"></button></div>
-<p>Swipe upward to throw higher. Swipe diagonally to aim across the office. Use the computer and cubicle walls for bank shots.</p>
+<p>Swipe upward to throw higher. Swipe diagonally to aim sideways. Use the computer and cubicle walls for rebounds.</p>
 <button class="menuBtn secondary" id="settingsBack">BACK</button>
 </div>
 </div>
@@ -124,27 +124,46 @@ const V=(x,y,z)=>new THREE.Vector3(x,y,z);
 const G=9.8;
 const R=.065;
 
-// V0.9.17: left-side player position.
-const START=V(-1.12,1.31,1.02);
+// Camera and release position.
+// The hand starts near the lower-left
+// of the visible first-person view.
+const CAMERA_POS=V(-1.08,1.54,2.05);
+const CAMERA_TARGET=V(.48,1.03,-1.08);
 
-// Bin now rests on the right desk wing.
-const BIN_X=1.42;
-const BIN_Z=-.72;
-const BIN_BASE=.86;
-const BIN_R=.29;
-const BIN_H=.52;
+// Throw direction follows the
+// camera's horizontal viewing angle.
+const FORWARD=V(
+CAMERA_TARGET.x-CAMERA_POS.x,
+0,
+CAMERA_TARGET.z-CAMERA_POS.z
+).normalize();
+
+const RIGHT=V(-FORWARD.z,0,FORWARD.x);
+
+const START=CAMERA_POS.clone()
+.addScaledVector(FORWARD,.55)
+.addScaledVector(RIGHT,-.32);
+
+START.y=1.19;
+
+// Smaller bin on the right desk.
+const BIN_X=1.43;
+const BIN_Z=-.78;
+const BIN_BASE=.85;
+const BIN_R=.247;
+const BIN_H=.44;
 const BIN_TOP=BIN_BASE+BIN_H;
 
 const PHYSICS={
 wallBounce:.88,
-computerBounce:.83,
-deskBounce:.69,
+computerBounce:.84,
+deskBounce:.70,
 objectBounce:.75,
 floorBounce:.57,
 rimBounce:.76,
-rimInwardAssist:.12,
-scoreOpeningExtra:.028,
-minimumBankSpeed:.4
+rimInwardAssist:.10,
+scoreOpeningExtra:.012,
+minimumBankSpeed:.45
 };
 
 const skins=[
@@ -204,7 +223,7 @@ localStorage.setItem("ff_guide",JSON.stringify(guideOn));
 }
 
 // =====================================
-// ANGLED FIRST-PERSON CAMERA
+// SCENE AND CAMERA
 // =====================================
 
 const scene=new THREE.Scene();
@@ -212,16 +231,8 @@ scene.background=new THREE.Color("#9d8292");
 scene.fog=new THREE.Fog("#9d8292",9,22);
 
 const camera=new THREE.PerspectiveCamera(69,1,.035,35);
-
-// Left and farther back, looking across
-// the desk toward the right-hand bin.
-camera.position.set(-1.08,1.54,2.05);
-camera.lookAt(.48,1.20,-1.08);
-
-// Forward and right are relative to
-// the player's new viewing angle.
-const FORWARD=V(.45,0,-.893).normalize();
-const RIGHT=V(-FORWARD.z,0,FORWARD.x);
+camera.position.copy(CAMERA_POS);
+camera.lookAt(CAMERA_TARGET);
 
 const renderer=new THREE.WebGLRenderer({
 canvas:$("game"),
@@ -314,7 +325,7 @@ scene.fog.color.set(p.back);
 }
 
 // =====================================
-// GEOMETRY HELPERS
+// OBJECT HELPERS
 // =====================================
 
 function mesh(g,m,x=0,y=0,z=0,parent=scene){
@@ -535,8 +546,6 @@ bevelThickness:.022,
 curveSegments:8
 });
 
-// Correct horizontal orientation:
-// shape coordinates become X and Z.
 g.rotateX(Math.PI/2);
 
 const desk=mesh(g,M.desk,0,.81,0);
@@ -545,7 +554,8 @@ desk.receiveShadow=true;
 
 roundedDeskShape();
 
-// Actual desk collision regions.
+// The collision regions match the
+// three physical desk sections.
 collisionBox(
 2.1,.13,.95,
 0,.78,-1.75,
@@ -758,11 +768,9 @@ M.accent,-1.61,1.46,-1.91
 shade.rotation.z=.35;
 
 // =====================================
-// ELEVATED DESK BIN
+// SMALLER DESK BIN
 // =====================================
 
-// The bin is positioned over the
-// right-hand desk surface.
 const targetGroup=new THREE.Group();
 targetGroup.position.set(BIN_X,BIN_BASE,BIN_Z);
 scene.add(targetGroup);
@@ -774,27 +782,24 @@ side:THREE.DoubleSide
 });
 
 cyl(
-BIN_R,.225,BIN_H,
+BIN_R,.19,BIN_H,
 binMaterial,
 0,BIN_H/2,0,
 targetGroup,true
 );
 
-cyl(
-.225,.225,.025,
-dark,0,.012,0,targetGroup
-);
+cyl(.19,.19,.025,dark,0,.012,0,targetGroup);
 
 const rim=mesh(
-new THREE.TorusGeometry(BIN_R,.024,10,36),
+new THREE.TorusGeometry(BIN_R,.02,10,36),
 chrome,0,BIN_H,0,targetGroup
 );
 rim.rotation.x=Math.PI/2;
 
-box(.21,.09,.015,cream,0,.28,.245,targetGroup);
+box(.18,.07,.012,cream,0,.24,.205,targetGroup);
 
 // =====================================
-// BALL AND FIRST-PERSON HAND
+// BALL AND THROWING HAND
 // =====================================
 
 const ballMat=new THREE.MeshStandardMaterial({
@@ -810,12 +815,15 @@ ballMat,
 START.x,START.y,START.z
 );
 
+// Hand is positioned relative to
+// the camera, so it remains visible.
 const handGroup=new THREE.Group();
 scene.add(handGroup);
-handGroup.position.set(
-START.x,
-START.y-.22,
-START.z+.08
+
+handGroup.position.copy(START);
+handGroup.position.y-=.14;
+handGroup.position.addScaledVector(
+RIGHT,-.025
 );
 
 const palm=sphere(.095,skin,0,0,0,handGroup);
@@ -824,7 +832,7 @@ palm.scale.set(1,.7,1.25);
 for(let i=0;i<4;i++){
 const f=sphere(
 .027,skin,
--.062+i*.04,.04,-.06,
+-.062+i*.04,.055,-.065,
 handGroup
 );
 f.scale.set(.8,1.4,1.35);
@@ -873,7 +881,7 @@ const bounceDots=[];
 
 for(let i=0;i<12;i++){
 const d=mesh(
-new THREE.SphereGeometry(.065,10,8),
+new THREE.SphereGeometry(.055,10,8),
 new THREE.MeshBasicMaterial({
 color:"#f17b9f",
 depthTest:false,
@@ -1090,12 +1098,12 @@ updateLabel();
 updateGoal();
 
 $("hint").textContent=
-"Swipe to aim · Use the walls for bank shots";
+"Swipe up to throw · Diagonal swipes aim sideways";
 
 $("power").textContent="";
 
 showScreen("playing");
-message("NEW ANGLE READY!",1100);
+message("READY TO FLICK!",1100);
 }
 
 function completeChallenge(){
@@ -1251,7 +1259,7 @@ resetBall();
 }
 
 // =====================================
-// SWIPE POWER
+// SWIPE POWER AND AIM
 // =====================================
 
 function swipeToPower(swipeDistance){
@@ -1271,29 +1279,28 @@ return .40+(normalized-.25)*.40;
 return .60+((normalized-.75)/.25)*.40;
 }
 
-// =====================================
-// ANGLED FREE-AIM THROWING
-// =====================================
-
 function launchVelocity(dx,dy){
 const swipeDistance=Math.max(0,-dy);
 const power=swipeToPower(swipeDistance);
 
 const sideways=clamp(
-dx/(innerWidth*.35),
--1,1
+dx/(innerWidth*.42),
+-1.4,1.4
 );
 
 const elevation=clamp(
-swipeDistance/(innerHeight*.42),
+swipeDistance/(innerHeight*.50),
 0,1
 );
 
-// The player throws diagonally across
-// the cubicle, not along world Z.
-const forward=2.35+power*2.0;
-const vertical=1.45+elevation*4.8;
-const lateral=sideways*(2.4+power*1.7);
+// The new position requires more
+// horizontal travel across the desk.
+//
+// Vertical velocity remains independent
+// so high arcs are still possible.
+const forward=2.7+power*2.5;
+const vertical=1.55+elevation*4.7;
+const lateral=sideways*(2.8+power*1.9);
 
 const velocity=FORWARD.clone()
 .multiplyScalar(forward)
@@ -1488,7 +1495,7 @@ b.type
 }
 
 // =====================================
-// ELEVATED BIN COLLISIONS
+// BIN COLLISION AND SCORING
 // =====================================
 
 function collideBin(s,previous,cx){
@@ -1498,8 +1505,8 @@ const dx=p.x-cx;
 const dz=p.z-BIN_Z;
 const horizontal=Math.hypot(dx,dz);
 
-// The scoring plane is now elevated
-// above the desk, not near the floor.
+// A shot only scores when the ball
+// crosses downward into the opening.
 if(
 previous.y>=BIN_TOP&&
 p.y<BIN_TOP&&
@@ -1526,14 +1533,14 @@ return;
 }
 }
 
-// Bin rim collision at new height.
+// Rim collision.
 const ringDistance=Math.hypot(
 horizontal-BIN_R,
 p.y-BIN_TOP
 );
 
 if(
-ringDistance<R+.024&&
+ringDistance<R+.02&&
 s.cooldown<=0
 ){
 const radial=V(
@@ -1582,7 +1589,7 @@ s.cooldown=.085;
 }
 }
 
-// Interior and exterior walls.
+// Bin side walls.
 if(
 p.y>BIN_BASE+R&&
 p.y<BIN_TOP-R*.3&&
@@ -1611,7 +1618,7 @@ BIN_R+(inside?-R:R)
 rebound(s,normal,.58,false,"bin");
 }
 
-// The bin has a solid bottom.
+// Bin bottom.
 if(
 p.y<BIN_BASE+R&&
 p.y>BIN_BASE-R&&
@@ -1867,7 +1874,7 @@ const c=activeChallenge();
 
 targetGroup.position.x=
 mode==="challenge"&&c?.moving?
-BIN_X+Math.sin(targetPhase*1.25)*.10:
+BIN_X+Math.sin(targetPhase*1.25)*.08:
 BIN_X;
 
 if(mode==="challenge"&&!over){
