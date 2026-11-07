@@ -5,11 +5,11 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="theme-color" content="#433650">
-<title>Flick Frenzy V0.9.24</title>
+<title>Flick Frenzy V0.9.25</title>
 <style>
 *{box-sizing:border-box}
 html,body{margin:0;width:100%;height:100%;overflow:hidden}
-body{font-family:system-ui,Arial;background:#433650;color:#fff;touch-action:none;user-select:none}
+body{font-family:system-ui,Arial;background:#433650;color:white;touch-action:none;user-select:none}
 canvas{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none}
 .screen{position:absolute;inset:0;z-index:5;display:none;align-items:center;justify-content:center;padding:15px;background:linear-gradient(145deg,#b67fa7,#8074b1,#79c6bd)}
 .screen.active{display:flex}
@@ -18,10 +18,10 @@ h1{font-size:43px;line-height:1;color:#ffe0a0;text-shadow:0 4px #a65e95}
 h2{color:#ffe0a0}
 h3{color:#d7b5e5}
 p{color:#f1e8f2}
-button{border:0;border-radius:12px;padding:13px;font-weight:850;font-size:15px;background:#ffe09a;color:#332940;cursor:pointer}
+button{border:0;border-radius:12px;padding:13px;font-weight:850;font-size:15px;background:#ffe09a;color:#332940}
 button:disabled{opacity:.45}
 .menuBtn{display:block;width:100%;margin:10px 0}
-.secondary{background:#8170a5;color:#fff}
+.secondary{background:#8170a5;color:white}
 .item{background:#4c405f;border:1px solid #aa93bf;border-radius:13px;padding:12px;margin:10px 0;text-align:left}
 .item strong{color:#ffe0a0}
 .item p{font-size:13px}
@@ -78,7 +78,7 @@ button:disabled{opacity:.45}
 <button class="menuBtn" id="challengeBtn">CHALLENGES</button>
 <button class="menuBtn secondary" id="shopBtn">BALL SHOP</button>
 <button class="menuBtn secondary" id="settingsBtn">SETTINGS</button>
-<p style="font-size:12px">V0.9.24 · Flush-fit desk</p>
+<p style="font-size:12px">V0.9.25 · Back-wall bank poster</p>
 </div>
 </div>
 
@@ -106,7 +106,7 @@ button:disabled{opacity:.45}
 <div class="row"><strong>Sound</strong><button id="soundToggle"></button></div>
 <div class="row"><strong>Effects</strong><button id="effectsToggle"></button></div>
 <div class="row"><strong>Trajectory guide</strong><button id="guideToggle"></button></div>
-<p>Use short upward swipes for power and height. Swipe diagonally to steer. Try the gold computer screen or teal wall for a trick shot.</p>
+<p>Short upward swipes control power and height. Swipe diagonally to steer. BANK 1 is the computer screen. BANK 2 is the poster on the back wall.</p>
 <button class="menuBtn secondary" id="settingsBack">BACK</button>
 </div>
 </div>
@@ -123,19 +123,14 @@ const CAMERA_POS=V(-1.08,1.54,2.05);
 const CAMERA_TARGET=V(.48,1.16,-1.08);
 const FORWARD=V(1.56,0,-3.13).normalize();
 const RIGHT=V(-FORWARD.z,0,FORWARD.x);
-
 const START=CAMERA_POS.clone()
 .addScaledVector(FORWARD,.55)
 .addScaledVector(RIGHT,-.32);
 START.y=1.19;
 
-const BIN_X=1.43;
-const BIN_Z=-.78;
-const BIN_BASE=.85;
-const BIN_R=.247;
-const BIN_H=.44;
+const BIN_X=1.43,BIN_Z=-.78;
+const BIN_BASE=.85,BIN_R=.247,BIN_H=.44;
 const BIN_TOP=BIN_BASE+BIN_H;
-
 const BANK_COMPUTER="computerBank";
 const BANK_WALL="wallBank";
 
@@ -279,7 +274,6 @@ const coral=mat("#cf838c");
 const yellow=mat("#e4c58b");
 const wood=mat("#896b62");
 const bankGold=mat("#f3cf83",.38,.14);
-const bankTeal=mat("#78d4c5",.38,.12);
 
 const palettes=[
 {wall:"#a989a5",back:"#bd9c9b",desk:"#a78c83",trim:"#665c78",accent:"#d3a478",chair:"#7b6c9c",cabinet:"#80afa6",floor:"#817d8a"},
@@ -289,11 +283,11 @@ const palettes=[
 ];
 
 let paletteIndex=-1;
+
 function shufflePalette(){
 let n;
-do{
-n=Math.floor(Math.random()*palettes.length);
-}while(n===paletteIndex);
+do{n=Math.floor(Math.random()*palettes.length);}
+while(n===paletteIndex);
 paletteIndex=n;
 const p=palettes[n];
 for(const k in M)M[k].color.set(p[k]);
@@ -333,8 +327,6 @@ o.quaternion.setFromUnitVectors(V(0,1,0),v.normalize());
 return o;
 }
 
-// ROTATED COLLISION BOXES
-
 const obstacles=[];
 
 function collisionBox(w,h,d,x,y,z,restitution=.7,type="object",angle=0){
@@ -358,7 +350,8 @@ return o;
 
 function graphic(w,h,draw){
 const c=document.createElement("canvas");
-c.width=w;c.height=h;
+c.width=w;
+c.height=h;
 const ctx=c.getContext("2d");
 draw(ctx,w,h);
 const t=new THREE.CanvasTexture(c);
@@ -400,8 +393,10 @@ box(.15,4,10,M.back,4.5,2,-1.2);
 
 solid(4.4,2.55,.1,M.wall,0,1.275,-2.55,
 PHYSICS.wallBounce,"wall");
+
 solid(.1,2.55,4,M.wall,-2.22,1.275,-.55,
 PHYSICS.wallBounce,"wall");
+
 solid(.1,2.55,4,M.wall,2.22,1.275,-.55,
 PHYSICS.wallBounce,"wall");
 
@@ -420,14 +415,76 @@ box(.012,.012,3.95,M.trim,-2.16,y,-.55);
 box(.012,.012,3.95,M.trim,2.16,y,-.55);
 }
 
-poster(textPanel(["BURGER","BREAK!"],"#ad604f","#f8d18c"),
--1.45,1.63,-2.47,.7,.85);
+poster(
+textPanel(["BURGER","BREAK!"],"#ad604f","#f8d18c"),
+-1.45,1.63,-2.47,.7,.85
+);
 
-poster(textPanel(["WORK","SMARTER"],"#587c87","#f6e8cf"),
-.78,1.69,-2.47,.67,.75);
+poster(
+textPanel(["WORK","SMARTER"],"#587c87","#f6e8cf"),
+.25,1.8,-2.47,.67,.75
+);
 
-poster(textPanel(["YOU GOT","THIS!"],"#c6a16a","#3e3548"),
--.57,2.02,-2.47,.46,.32);
+poster(
+textPanel(["YOU GOT","THIS!"],"#c6a16a","#3e3548"),
+-.57,2.02,-2.47,.46,.32
+);
+
+// V0.9.25: BANK 2 POSTER ON THE BACK WALL
+// The old floating teal panel is removed.
+// This poster sits on the back wall and has
+// its own physical rebound collider.
+
+const bankPosterTexture=graphic(512,640,(c,w,h)=>{
+c.fillStyle="#355c69";
+c.fillRect(0,0,w,h);
+
+c.strokeStyle="#f2d494";
+c.lineWidth=22;
+c.strokeRect(18,18,w-36,h-36);
+
+c.fillStyle="#e9c57f";
+c.fillRect(45,50,w-90,118);
+
+c.fillStyle="#334453";
+c.textAlign="center";
+c.font="bold 64px Arial";
+c.fillText("BANK 2",w/2,130);
+
+c.fillStyle="#f4e7cf";
+c.font="bold 45px Arial";
+c.fillText("TRICK",w/2,270);
+c.fillText("SHOT",w/2,326);
+
+c.strokeStyle="#f4d69d";
+c.lineWidth=15;
+c.beginPath();
+c.arc(w/2,445,78,0,Math.PI*2);
+c.stroke();
+
+c.fillStyle="#f4d69d";
+c.beginPath();
+c.arc(w/2,445,13,0,Math.PI*2);
+c.fill();
+});
+
+const posterX=1.38;
+const posterY=1.75;
+const posterZ=-2.472;
+
+box(.79,1.02,.025,black,posterX,posterY,posterZ);
+box(.74,.97,.015,bankGold,posterX,posterY,posterZ+.02);
+box(.70,.93,.016,bankPosterTexture,
+posterX,posterY,posterZ+.035);
+
+collisionBox(
+.74,.97,.055,
+posterX,posterY,posterZ+.04,
+PHYSICS.wallBounce,
+BANK_WALL
+);
+
+// Calendar
 
 const calendar=graphic(512,550,(c,w,h)=>{
 c.fillStyle="#eee8df";
@@ -465,29 +522,28 @@ box(.19,.18,.016,[yellow,coral,cyan,cream][i],x,y,-2.46);
 sphere(.018,black,x,y+.075,-2.435);
 }
 
-// V0.9.24 — FLUSH-FIT DESK
-// The back edge extends into the back wall.
-// Both the visible mesh and collision polygon
-// are generated from this same outline.
+// V0.9.25: DESK FLUSH WITH BACK AND RIGHT WALL
 
 const DESK_TOP=.835;
 const deskShape=new THREE.Shape();
 
-// Back wall front face is z = -2.50.
-// Extending to -2.53 closes the gap.
 deskShape.moveTo(-1.78,-2.53);
-deskShape.lineTo(1.78,-2.53);
+deskShape.lineTo(2.19,-2.53);
+deskShape.lineTo(2.19,.12);
 
-deskShape.lineTo(1.78,.12);
-deskShape.quadraticCurveTo(1.78,.26,1.62,.26);
+deskShape.quadraticCurveTo(2.19,.26,2.03,.26);
 deskShape.lineTo(1.13,.26);
+
 deskShape.quadraticCurveTo(.98,.26,.98,.08);
 deskShape.lineTo(.98,-1.05);
 deskShape.quadraticCurveTo(.98,-1.25,.75,-1.25);
+
 deskShape.lineTo(-.75,-1.25);
+
 deskShape.quadraticCurveTo(-.98,-1.25,-.98,-1.05);
 deskShape.lineTo(-.98,.08);
 deskShape.quadraticCurveTo(-.98,.26,-1.13,.26);
+
 deskShape.lineTo(-1.62,.26);
 deskShape.quadraticCurveTo(-1.78,.26,-1.78,.12);
 deskShape.closePath();
@@ -505,59 +561,37 @@ curveSegments:12
 deskGeometry.rotateX(Math.PI/2);
 mesh(deskGeometry,M.desk,0,.81,0);
 
-// Continuous desk collision shape.
 const deskPolygon=deskShape.getPoints(24).map(p=>({
 x:p.x,z:p.y
 }));
 
 function pointInsideDesk(x,z){
 let inside=false;
-
 for(let i=0,j=deskPolygon.length-1;i<deskPolygon.length;j=i++){
-const a=deskPolygon[i];
-const b=deskPolygon[j];
-
+const a=deskPolygon[i],b=deskPolygon[j];
 if(
 ((a.z>z)!==(b.z>z))&&
 x<(b.x-a.x)*(z-a.z)/(b.z-a.z)+a.x
-){
-inside=!inside;
-}
+)inside=!inside;
 }
 return inside;
 }
 
 function nearestDeskEdge(x,z){
-let best=Infinity;
-let px=0,pz=0;
-
+let best=Infinity,px=0,pz=0;
 for(let i=0;i<deskPolygon.length;i++){
 const a=deskPolygon[i];
 const b=deskPolygon[(i+1)%deskPolygon.length];
-
-const vx=b.x-a.x;
-const vz=b.z-a.z;
+const vx=b.x-a.x,vz=b.z-a.z;
 const len=vx*vx+vz*vz;
-
 const t=len>0?clamp(
 ((x-a.x)*vx+(z-a.z)*vz)/len,0,1
 ):0;
-
-const ex=a.x+vx*t;
-const ez=a.z+vz*t;
+const ex=a.x+vx*t,ez=a.z+vz*t;
 const d=(x-ex)**2+(z-ez)**2;
-
-if(d<best){
-best=d;
-px=ex;
-pz=ez;
+if(d<best){best=d;px=ex;pz=ez;}
 }
-}
-
-return{
-distance:Math.sqrt(best),
-x:px,z:pz
-};
+return{distance:Math.sqrt(best),x:px,z:pz};
 }
 
 function collideDesk(s,previous){
@@ -567,9 +601,9 @@ const edge=nearestDeskEdge(p.x,p.z);
 const aboveSurface=inside||edge.distance<R*.85;
 
 if(
-aboveSurface &&
-previous.y>=DESK_TOP+R-.005 &&
-p.y<=DESK_TOP+R &&
+aboveSurface&&
+previous.y>=DESK_TOP+R-.005&&
+p.y<=DESK_TOP+R&&
 s.v.y<0
 ){
 p.y=DESK_TOP+R+.001;
@@ -578,9 +612,9 @@ return;
 }
 
 if(
-aboveSurface &&
-p.y>=DESK_TOP-R*.45 &&
-p.y<DESK_TOP+R &&
+aboveSurface&&
+p.y>=DESK_TOP-R*.45&&
+p.y<DESK_TOP+R&&
 s.v.y<0
 ){
 p.y=DESK_TOP+R+.001;
@@ -589,26 +623,22 @@ return;
 }
 
 if(
-!inside &&
-edge.distance<R &&
-p.y>DESK_TOP-.09 &&
+!inside&&edge.distance<R&&
+p.y>DESK_TOP-.09&&
 p.y<DESK_TOP+R*.6
 ){
-const dx=p.x-edge.x;
-const dz=p.z-edge.z;
+const dx=p.x-edge.x,dz=p.z-edge.z;
 const length=Math.hypot(dx,dz)||1;
 const normal=V(dx/length,0,dz/length);
-
 p.addScaledVector(normal,R-edge.distance+.001);
 rebound(s,normal,PHYSICS.deskBounce,true,"desk");
 }
 }
 
-// Desk-to-wall trim for a clean join.
-box(3.56,.045,.055,M.trim,0,.86,-2.49);
+box(3.97,.045,.055,M.trim,.205,.86,-2.49);
+box(.055,.045,2.65,M.trim,2.16,.86,-1.2);
 
-// Desk supports and cabinet.
-for(const x of [-1.68,1.68]){
+for(const x of [-1.68,2.08]){
 box(.07,.72,.07,chrome,x,.36,-1.95);
 }
 
@@ -622,10 +652,9 @@ box(.2,.025,.03,chrome,-1.52,y,-1.4);
 
 box(2.12,.035,.035,wood,0,.73,-1.26);
 
-// COMPUTER BANK
+// COMPUTER BANK 1
 
 const COMPUTER_ANGLE=.43;
-
 const computerGroup=new THREE.Group();
 computerGroup.position.set(-.05,0,-1.96);
 computerGroup.rotation.y=COMPUTER_ANGLE;
@@ -633,10 +662,6 @@ scene.add(computerGroup);
 
 function computerBox(w,h,d,m,x,y,z){
 return box(w,h,d,m,x,y,z,computerGroup);
-}
-
-function computerSphere(r,m,x,y,z){
-return sphere(r,m,x,y,z,computerGroup);
 }
 
 function computerWorldPoint(x,y,z){
@@ -653,9 +678,7 @@ const bodyCenter=computerWorldPoint(0,1.29,-.045);
 collisionBox(
 .91,.78,.39,
 bodyCenter.x,bodyCenter.y,bodyCenter.z,
-PHYSICS.computerBounce,
-"computer",
-COMPUTER_ANGLE
+PHYSICS.computerBounce,"computer",COMPUTER_ANGLE
 );
 
 computerBox(.82,.66,.03,black,0,1.33,.265);
@@ -693,13 +716,9 @@ const screenCenter=computerWorldPoint(0,1.35,.293);
 collisionBox(
 .76,.57,.045,
 screenCenter.x,screenCenter.y,screenCenter.z,
-PHYSICS.computerBounce,
-BANK_COMPUTER,
-COMPUTER_ANGLE
+PHYSICS.computerBounce,BANK_COMPUTER,COMPUTER_ANGLE
 );
 
-computerSphere(.021,plant,.34,.97,.30);
-computerBox(.085,.05,.026,coral,.41,.97,.30);
 computerBox(.25,.12,.22,cream,0,.87,.03);
 computerBox(.65,.055,.37,cream,0,.8,.07);
 
@@ -711,41 +730,6 @@ const computerMarker=textPanel(
 ["BANK","1"],"#e5b76c","#45344e",256,256
 );
 computerBox(.14,.14,.008,computerMarker,.31,1.55,.34);
-
-// WALL BANK
-
-const WALL_BANK_ANGLE=.57;
-const wallBankX=1.83;
-const wallBankY=1.55;
-const wallBankZ=-1.53;
-
-solid(
-.78,.82,.075,M.wall,
-wallBankX,wallBankY,wallBankZ,
-PHYSICS.wallBounce,
-BANK_WALL,
-WALL_BANK_ANGLE
-);
-
-const wallBankGroup=new THREE.Group();
-wallBankGroup.position.set(wallBankX,wallBankY,wallBankZ);
-wallBankGroup.rotation.y=WALL_BANK_ANGLE;
-scene.add(wallBankGroup);
-
-box(.72,.065,.085,bankTeal,0,.39,.003,wallBankGroup);
-box(.72,.065,.085,bankTeal,0,-.39,.003,wallBankGroup);
-box(.065,.72,.085,bankTeal,-.36,0,.003,wallBankGroup);
-box(.065,.72,.085,bankTeal,.36,0,.003,wallBankGroup);
-
-const wallMarker=textPanel(
-["BANK","2"],"#69c9ba","#30414f",256,256
-);
-box(.22,.22,.01,wallMarker,0,.05,.054,wallBankGroup);
-
-solid(
-.82,.62,.075,M.wall,-1.73,1.99,-1.52,
-PHYSICS.wallBounce,"wall",-.30
-);
 
 // KEYBOARD
 
@@ -804,11 +788,6 @@ box(.43,.045,.3,[coral,cyan,yellow][i],
 -1.47,.87+i*.049,-1.22);
 }
 
-for(let i=0;i<4;i++){
-box(.3,.006,.007,dark,
--1.48,.895,-1.34+i*.055);
-}
-
 cyl(.13,.15,.04,black,-1.66,.87,-1.9);
 tube(V(-1.66,.9,-1.9),V(-1.66,1.37,-1.9),.025,chrome);
 
@@ -849,16 +828,7 @@ const leaf=sphere(.095,plant,x,1.35,z);
 leaf.scale.set(.7,1,.45);
 }
 
-cyl(.14,.15,.045,black,-1.54,.86,-1.9);
-tube(V(-1.54,.9,-1.9),V(-1.61,1.4,-1.91),.025,chrome);
-
-const shade=mesh(
-new THREE.ConeGeometry(.17,.22,24),
-M.accent,-1.61,1.46,-1.91
-);
-shade.rotation.z=.35;
-
-// BIN — UNCHANGED
+// BIN
 
 const targetGroup=new THREE.Group();
 targetGroup.position.set(BIN_X,BIN_BASE,BIN_Z);
@@ -998,27 +968,15 @@ ballLight.color.set(s.glow);
 let screen="menu";
 let mode="endless";
 let challengeId=null;
-
-let score=0;
-let misses=0;
-let combo=0;
-let banks=0;
-let successfulShots=0;
-let round=1;
-let challengeCount=0;
-let streak=0;
-let challengeStart=0;
-let targetPhase=0;
-
-let shot=null;
-let touch=null;
-let locked=false;
-let over=false;
+let score=0,misses=0,combo=0,banks=0;
+let successfulShots=0,round=1;
+let challengeCount=0,streak=0;
+let challengeStart=0,targetPhase=0;
+let shot=null,touch=null;
+let locked=false,over=false;
 let session=0;
-let finishTimer=null;
-let messageTimer=null;
-let audio=null;
-let trailPoints=[];
+let finishTimer=null,messageTimer=null;
+let audio=null,trailPoints=[];
 
 const activeChallenge=()=>challenges.find(c=>c.id===challengeId);
 
@@ -1176,7 +1134,7 @@ updateLabel();
 updateGoal();
 
 $("hint").textContent=
-"BANK 1: Computer · BANK 2: Right wall";
+"BANK 1: Computer · BANK 2: Back-wall poster";
 
 showScreen("playing");
 message("READY TO FLICK!",1100);
@@ -1265,7 +1223,7 @@ updateGoal();
 if(shot.bankTypes.includes(BANK_COMPUTER)){
 message("COMPUTER BANK! +"+points);
 }else if(shot.bankTypes.includes(BANK_WALL)){
-message("WALL BANK! +"+points);
+message("POSTER BANK! +"+points);
 }else{
 message(
 bank?"LUCKY BANK! +"+points:
@@ -1341,7 +1299,7 @@ resetBall();
 },1050);
 }
 
-// SHORT SWIPE POWER AND HEIGHT
+// SWIPE CONTROLS
 
 function swipeToPower(swipeDistance){
 return clamp(
@@ -1549,13 +1507,9 @@ normal.y,
 -normal.x*b.sin+normal.z*b.cos
 ).normalize();
 
-s.p.addScaledVector(
-worldNormal,depth+.001
-);
+s.p.addScaledVector(worldNormal,depth+.001);
 
-rebound(
-s,worldNormal,b.e,true,b.type
-);
+rebound(s,worldNormal,b.e,true,b.type);
 }
 }
 
@@ -1749,7 +1703,7 @@ $("aim").textContent=
 "COMPUTER BANK — PREDICTED SCORE!";
 }else if(sim.bankTypes.includes(BANK_WALL)){
 $("aim").textContent=
-"WALL BANK — PREDICTED SCORE!";
+"POSTER BANK — PREDICTED SCORE!";
 }else if(sim.banks){
 $("aim").textContent=
 "LUCKY BANK — PREDICTED SCORE!";
@@ -1759,7 +1713,7 @@ $("aim").textContent="PREDICTED SCORE!";
 }else{
 $("aim").textContent=sim.banks?
 "REBOUND PATH · "+sim.banks+" BOUNCE(S)":
-"AIM FOR A HIGHLIGHTED BANK SURFACE";
+"AIM FOR A BANK SURFACE";
 }
 }
 
