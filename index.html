@@ -1311,32 +1311,45 @@ return .60+((normalized-.75)/.25)*.40;
 // that reaches the target.
 
 function launchVelocity(dx,dy){
-const power=swipeToPower(Math.max(0,-dy));
 
-const sideways=clamp(
-dx/(innerWidth*.35),
--1,1
-);
+  const swipeDistance=Math.max(0,-dy);
 
-// Short-distance office throw.
-// Moderate power is suitable for the
-// nearby bin, while harder throws can
-// reach the computer and partitions.
+  // Keep original swipe-power sensitivity.
+  const power=swipeToPower(swipeDistance);
 
-const forward=1.45+power*.8;
-const vertical=1.1+power*2.2;
-const lateral=sideways*(1.7+power*1.1);
+  // Horizontal aiming remains fully independent.
+  const sideways=clamp(
+    dx/(innerWidth*.35),
+    -1,1
+  );
 
-return{
-power,
-velocity:V(lateral,vertical,-forward)
-};
+  // Swipe distance also controls elevation.
+  // Short swipes: low, flat throws.
+  // Long swipes: high, arcing throws.
+  const elevation=clamp(
+    swipeDistance/(innerHeight*.42),
+    0,1
+  );
+
+  // Higher throws gain more upward velocity.
+  const vertical=1.3+elevation*5.2;
+
+  // Forward movement stays strong enough
+  // to reach the desk and cubicle walls.
+  const forward=1.8+power*1.5;
+
+  // Free left/right aiming.
+  const lateral=sideways*(2.0+power*1.6);
+
+  return{
+    power,
+    velocity:new THREE.Vector3(
+      lateral,
+      vertical,
+      -forward
+    )
+  };
 }
-
-// =====================================
-// SHARED COLLISION PHYSICS
-// =====================================
-
 function makeState(velocity){
 return{
 p:START.clone(),
