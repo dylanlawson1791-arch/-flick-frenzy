@@ -5,7 +5,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="theme-color" content="#433650">
-<title>Flick Frenzy V0.9.23</title>
+<title>Flick Frenzy V0.9.24</title>
 <style>
 *{box-sizing:border-box}
 html,body{margin:0;width:100%;height:100%;overflow:hidden}
@@ -78,7 +78,7 @@ button:disabled{opacity:.45}
 <button class="menuBtn" id="challengeBtn">CHALLENGES</button>
 <button class="menuBtn secondary" id="shopBtn">BALL SHOP</button>
 <button class="menuBtn secondary" id="settingsBtn">SETTINGS</button>
-<p style="font-size:12px">V0.9.23 · Better computer banks & solid desk</p>
+<p style="font-size:12px">V0.9.24 · Flush-fit desk</p>
 </div>
 </div>
 
@@ -465,15 +465,19 @@ box(.19,.18,.016,[yellow,coral,cyan,cream][i],x,y,-2.46);
 sphere(.018,black,x,y+.075,-2.435);
 }
 
-// V0.9.23 DESK
-// One continuous shape for rendering
-// and one matching polygon for physics.
+// V0.9.24 — FLUSH-FIT DESK
+// The back edge extends into the back wall.
+// Both the visible mesh and collision polygon
+// are generated from this same outline.
 
 const DESK_TOP=.835;
 const deskShape=new THREE.Shape();
 
-deskShape.moveTo(-1.78,-2.22);
-deskShape.lineTo(1.78,-2.22);
+// Back wall front face is z = -2.50.
+// Extending to -2.53 closes the gap.
+deskShape.moveTo(-1.78,-2.53);
+deskShape.lineTo(1.78,-2.53);
+
 deskShape.lineTo(1.78,.12);
 deskShape.quadraticCurveTo(1.78,.26,1.62,.26);
 deskShape.lineTo(1.13,.26);
@@ -498,34 +502,31 @@ bevelThickness:.022,
 curveSegments:12
 });
 
-// Extrusion rotated into the horizontal
-// X/Z desk plane.
 deskGeometry.rotateX(Math.PI/2);
-
 mesh(deskGeometry,M.desk,0,.81,0);
 
-// Same outline as the visible desk,
-// with sampled curved edges.
+// Continuous desk collision shape.
 const deskPolygon=deskShape.getPoints(24).map(p=>({
 x:p.x,z:p.y
 }));
 
 function pointInsideDesk(x,z){
 let inside=false;
+
 for(let i=0,j=deskPolygon.length-1;i<deskPolygon.length;j=i++){
 const a=deskPolygon[i];
 const b=deskPolygon[j];
 
-if(((a.z>z)!==(b.z>z))&&
-x<(b.x-a.x)*(z-a.z)/(b.z-a.z)+a.x){
+if(
+((a.z>z)!==(b.z>z))&&
+x<(b.x-a.x)*(z-a.z)/(b.z-a.z)+a.x
+){
 inside=!inside;
 }
 }
 return inside;
 }
 
-// Finds the nearest edge so the ball
-// also contacts the curved desk edges.
 function nearestDeskEdge(x,z){
 let best=Infinity;
 let px=0,pz=0;
@@ -537,6 +538,7 @@ const b=deskPolygon[(i+1)%deskPolygon.length];
 const vx=b.x-a.x;
 const vz=b.z-a.z;
 const len=vx*vx+vz*vz;
+
 const t=len>0?clamp(
 ((x-a.x)*vx+(z-a.z)*vz)/len,0,1
 ):0;
@@ -546,7 +548,9 @@ const ez=a.z+vz*t;
 const d=(x-ex)**2+(z-ez)**2;
 
 if(d<best){
-best=d;px=ex;pz=ez;
+best=d;
+px=ex;
+pz=ez;
 }
 }
 
@@ -560,14 +564,8 @@ function collideDesk(s,previous){
 const p=s.p;
 const inside=pointInsideDesk(p.x,p.z);
 const edge=nearestDeskEdge(p.x,p.z);
-
-// Include the ball's radius at the
-// curved edges, preventing small gaps.
 const aboveSurface=inside||edge.distance<R*.85;
 
-// Collision from above.
-// Crossing test prevents the ball
-// from tunnelling through the desktop.
 if(
 aboveSurface &&
 previous.y>=DESK_TOP+R-.005 &&
@@ -579,8 +577,6 @@ rebound(s,V(0,1,0),PHYSICS.deskBounce,true,"desk");
 return;
 }
 
-// Ball overlapping the upper surface
-// while moving down slowly.
 if(
 aboveSurface &&
 p.y>=DESK_TOP-R*.45 &&
@@ -592,7 +588,6 @@ rebound(s,V(0,1,0),PHYSICS.deskBounce,true,"desk");
 return;
 }
 
-// Curved outer edge collision.
 if(
 !inside &&
 edge.distance<R &&
@@ -609,6 +604,9 @@ rebound(s,normal,PHYSICS.deskBounce,true,"desk");
 }
 }
 
+// Desk-to-wall trim for a clean join.
+box(3.56,.045,.055,M.trim,0,.86,-2.49);
+
 // Desk supports and cabinet.
 for(const x of [-1.68,1.68]){
 box(.07,.72,.07,chrome,x,.36,-1.95);
@@ -624,9 +622,7 @@ box(.2,.025,.03,chrome,-1.52,y,-1.4);
 
 box(2.12,.035,.035,wood,0,.73,-1.26);
 
-// V0.9.23 COMPUTER BANK
-// Reversed from -0.43 to +0.43 radians.
-// Screen faces toward the bin side.
+// COMPUTER BANK
 
 const COMPUTER_ANGLE=.43;
 
@@ -651,8 +647,6 @@ y,
 );
 }
 
-// Computer body, with a collision box
-// ending behind the highlighted screen.
 computerBox(.91,.78,.48,cream,0,1.29,0);
 
 const bodyCenter=computerWorldPoint(0,1.29,-.045);
@@ -664,8 +658,6 @@ PHYSICS.computerBounce,
 COMPUTER_ANGLE
 );
 
-// Front screen is a separate collision
-// surface with its own bank-shot identity.
 computerBox(.82,.66,.03,black,0,1.33,.265);
 
 const monitorTexture=graphic(512,390,(c,w,h)=>{
@@ -711,7 +703,6 @@ computerBox(.085,.05,.026,coral,.41,.97,.30);
 computerBox(.25,.12,.22,cream,0,.87,.03);
 computerBox(.65,.055,.37,cream,0,.8,.07);
 
-// Highlight around screen.
 computerBox(.77,.035,.028,bankGold,0,1.63,.322);
 computerBox(.035,.53,.028,bankGold,-.39,1.35,.322);
 computerBox(.035,.53,.028,bankGold,.39,1.35,.322);
@@ -721,7 +712,7 @@ const computerMarker=textPanel(
 );
 computerBox(.14,.14,.008,computerMarker,.31,1.55,.34);
 
-// WALL BANK — SAME LOCATION
+// WALL BANK
 
 const WALL_BANK_ANGLE=.57;
 const wallBankX=1.83;
@@ -751,7 +742,6 @@ const wallMarker=textPanel(
 );
 box(.22,.22,.01,wallMarker,0,.05,.054,wallBankGroup);
 
-// Decorative left wall panel.
 solid(
 .82,.62,.075,M.wall,-1.73,1.99,-1.52,
 PHYSICS.wallBounce,"wall",-.30
@@ -893,7 +883,7 @@ rim.rotation.x=Math.PI/2;
 
 box(.18,.07,.012,cream,0,.24,.205,targetGroup);
 
-// BALL AND HAND — UNCHANGED
+// BALL AND HAND
 
 const ballMat=new THREE.MeshStandardMaterial({
 color:"#75dce8",
@@ -1510,8 +1500,6 @@ function collideFurniture(s){
 for(const b of obstacles){
 const relative=s.p.clone().sub(b.c);
 
-// Convert ball position to the
-// rotated obstacle's local coordinates.
 const local=V(
 relative.x*b.cos-relative.z*b.sin,
 relative.y,
@@ -1555,8 +1543,6 @@ Math.sign(local.getComponent(axis))||1
 depth=R+faces[0].d;
 }
 
-// Rotate collision normal back
-// into world coordinates.
 const worldNormal=V(
 normal.x*b.cos+normal.z*b.sin,
 normal.y,
@@ -1696,14 +1682,8 @@ s.v.y-=G*dt;
 s.p.addScaledVector(s.v,dt);
 
 collideRoom(s,dt);
-
-// Continuous curved desk collision.
 collideDesk(s,previous);
-
-// Computer, walls and other objects.
 collideFurniture(s);
-
-// Bin scoring and rim.
 collideBin(s,previous,cx);
 
 if(
