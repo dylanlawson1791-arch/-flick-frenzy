@@ -5,7 +5,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="theme-color" content="#433650">
-<title>Flick Frenzy V0.9.19</title>
+<title>Flick Frenzy V0.9.20</title>
 <style>
 *{box-sizing:border-box}
 html,body{margin:0;width:100%;height:100%;overflow:hidden}
@@ -78,7 +78,7 @@ button:disabled{opacity:.45}
 <button class="menuBtn" id="challengeBtn">CHALLENGES</button>
 <button class="menuBtn secondary" id="shopBtn">BALL SHOP</button>
 <button class="menuBtn secondary" id="settingsBtn">SETTINGS</button>
-<p style="font-size:12px">V0.9.19 · First-person polish</p>
+<p style="font-size:12px">V0.9.20 · Easier full-power swipes</p>
 </div>
 </div>
 
@@ -120,19 +120,11 @@ const V=(x,y,z)=>new THREE.Vector3(x,y,z);
 const G=9.8;
 const R=.065;
 
-// Keep V0.9.18 throw origin and physics.
+// Same camera, throw origin and bin.
 const CAMERA_POS=V(-1.08,1.54,2.05);
-
-// Small upward framing adjustment:
-// less empty floor, more desk.
 const CAMERA_TARGET=V(.48,1.16,-1.08);
 
-const FORWARD=V(
-.48-(-1.08),
-0,
--1.08-2.05
-).normalize();
-
+const FORWARD=V(1.56,0,-3.13).normalize();
 const RIGHT=V(-FORWARD.z,0,FORWARD.x);
 
 const START=CAMERA_POS.clone()
@@ -537,7 +529,7 @@ tube(V(-1.54,.9,-1.9),V(-1.61,1.4,-1.91),.025,chrome);
 const shade=mesh(new THREE.ConeGeometry(.17,.22,24),M.accent,-1.61,1.46,-1.91);
 shade.rotation.z=.35;
 
-// BIN — unchanged
+// BIN — UNCHANGED
 
 const targetGroup=new THREE.Group();
 targetGroup.position.set(BIN_X,BIN_BASE,BIN_Z);
@@ -552,26 +544,16 @@ const rim=mesh(new THREE.TorusGeometry(BIN_R,.02,10,36),chrome,0,BIN_H,0,targetG
 rim.rotation.x=Math.PI/2;
 box(.18,.07,.012,cream,0,.24,.205,targetGroup);
 
-// BALL — WORLD SPACE DURING FLIGHT
+// BALL AND HAND — UNCHANGED
 
 const ballMat=new THREE.MeshStandardMaterial({
 color:"#75dce8",emissive:"#32a6ba",emissiveIntensity:.15,roughness:.65
 });
 const ball=mesh(new THREE.SphereGeometry(R,20,16),ballMat,START.x,START.y,START.z);
 
-// FIRST-PERSON VIEW MODEL
-// Attached to the camera, so it cannot
-// disappear off-screen before throwing.
-// It is hidden as soon as the shot begins.
-
 const viewModel=new THREE.Group();
 camera.add(viewModel);
 scene.add(camera);
-
-// Camera-local coordinates:
-// negative X = left side of screen;
-// negative Y = lower on screen;
-// negative Z = in front of the camera.
 viewModel.position.set(-.26,-.32,-.65);
 
 const handGroup=new THREE.Group();
@@ -591,8 +573,6 @@ thumb.scale.set(1,.85,1.4);
 const sleeve=box(.19,.16,.19,M.chair,0,-.19,.12,handGroup);
 sleeve.rotation.x=-.22;
 
-// Separate visible held ball.
-// The actual physics ball starts at START.
 const heldBall=mesh(
 new THREE.SphereGeometry(.065,20,16),
 ballMat,0,.04,-.075,viewModel
@@ -818,14 +798,17 @@ resetBall();
 },1050);
 }
 
-// SAME V0.9.18 THROW CONTROLS
+// V0.9.20 — SHORTER SWIPE FOR 100% POWER
 
 function swipeToPower(swipeDistance){
-const normalized=clamp((swipeDistance/innerHeight-.06)/.36,0,1);
-if(normalized<.25)return(normalized/.25)*.40;
-if(normalized<=.75)return .40+(normalized-.25)*.40;
-return .60+((normalized-.75)/.25)*.40;
+const normalized=clamp(
+(swipeDistance/innerHeight-.02)/.20,
+0,1
+);
+return normalized;
 }
+
+// SAME MAXIMUM THROW STRENGTH AND AIM
 function launchVelocity(dx,dy){
 const swipeDistance=Math.max(0,-dy);
 const power=swipeToPower(swipeDistance);
