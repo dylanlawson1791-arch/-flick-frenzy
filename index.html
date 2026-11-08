@@ -5,11 +5,11 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="theme-color" content="#433650">
-<title>Flick Frenzy V0.9.29</title>
+<title>Flick Frenzy V0.9.30</title>
 <style>
 *{box-sizing:border-box}
 html,body{margin:0;width:100%;height:100%;overflow:hidden}
-body{font-family:system-ui,Arial,sans-serif;background:#433650;color:#fff;touch-action:none;user-select:none;-webkit-user-select:none}
+body{background:#433650;color:white;font-family:system-ui,Arial,sans-serif;touch-action:none;user-select:none;-webkit-user-select:none}
 canvas{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none}
 .screen{position:absolute;inset:0;z-index:5;display:none;align-items:center;justify-content:center;padding:14px;background:linear-gradient(145deg,#b67fa7,#8074b1,#79c6bd)}
 .screen.active{display:flex}
@@ -32,7 +32,7 @@ button:disabled{opacity:.45}
 .overlay{position:absolute;z-index:2;width:100%;text-align:center;pointer-events:none;text-shadow:0 2px 5px #28202b;display:none;padding:0 10px}
 #label{top:calc(env(safe-area-inset-top) + 104px);font-weight:850;color:#ffe3a8;font-size:13px}
 #goal{top:calc(env(safe-area-inset-top) + 128px);font-size:12px}
-#message{top:26%;font-size:25px;font-weight:950}
+#message{top:25%;font-size:25px;font-weight:950}
 #aim{top:35%;font-weight:850;color:#ffefa5;font-size:14px}
 #power{bottom:18%;font-weight:850;color:#ffe6a7}
 #hint{bottom:10%;font-size:12px}
@@ -49,13 +49,7 @@ button:disabled{opacity:.45}
 </head>
 <body>
 
-<div id="loading">
-<div>
-<h1>FLICK FRENZY</h1>
-<p>Loading the office...</p>
-</div>
-</div>
-
+<div id="loading"><div><h1>FLICK FRENZY</h1><p>Loading the office...</p></div></div>
 <canvas id="game"></canvas>
 <div id="flash"></div>
 <div id="celebration"></div>
@@ -79,8 +73,7 @@ button:disabled{opacity:.45}
 <button id="pause" class="secondary">MENU</button>
 <button id="again">PLAY AGAIN</button>
 
-<div class="screen" id="menu">
-<div class="panel">
+<div class="screen" id="menu"><div class="panel">
 <h1>FLICK<br>FRENZY</h1>
 <p>THE OFFICE TRICK-SHOT GAME</p>
 <p style="font-size:43px">🖥️ 🗑️ 🏀</p>
@@ -90,41 +83,33 @@ button:disabled{opacity:.45}
 <button class="menuBtn" id="challengeBtn">CHALLENGES</button>
 <button class="menuBtn secondary" id="shopBtn">BALL SHOP</button>
 <button class="menuBtn secondary" id="settingsBtn">SETTINGS</button>
-<p class="small">V0.9.29 · Precision Bank Update</p>
-</div>
-</div>
+<p class="small">V0.9.30 · Precision Trick-Shot Update</p>
+</div></div>
 
-<div class="screen" id="challenges">
-<div class="panel">
+<div class="screen" id="challenges"><div class="panel">
 <h2>CHALLENGES</h2>
 <p id="progress"></p>
 <div id="challengeList"></div>
 <button class="menuBtn secondary" id="challengeBack">BACK</button>
-</div>
-</div>
+</div></div>
 
-<div class="screen" id="shop">
-<div class="panel">
+<div class="screen" id="shop"><div class="panel">
 <h2>BALL SHOP</h2>
 <p id="shopCoins"></p>
 <div id="skinList"></div>
 <button class="menuBtn secondary" id="shopBack">BACK</button>
-</div>
-</div>
+</div></div>
 
-<div class="screen" id="settings">
-<div class="panel">
+<div class="screen" id="settings"><div class="panel">
 <h2>SETTINGS</h2>
 <div class="row"><strong>Sound</strong><button id="soundToggle"></button></div>
 <div class="row"><strong>Effects</strong><button id="effectsToggle"></button></div>
 <div class="row"><strong>Trajectory guide</strong><button id="guideToggle"></button></div>
 <p>Swipe upward to shoot. Swipe diagonally to steer.</p>
-<p>Yellow dots show the first flight. Blue dots show the rebound path. Green means the simulation predicts a basket.</p>
-<p>BANK 1: Angled computer screen.</p>
-<p>BANK 2: Angled back-wall poster.</p>
+<p>Yellow = incoming flight. Blue = after first rebound. Pink = impact. Green = predicted basket.</p>
+<p>Use Practice Mode to test BANK 1 (computer) and BANK 2 (angled wall poster).</p>
 <button class="menuBtn secondary" id="settingsBack">BACK</button>
-</div>
-</div>
+</div></div>
 
 <script type="module">
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js';
@@ -132,7 +117,6 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.m
 const $=id=>document.getElementById(id);
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 const V=(x,y,z)=>new THREE.Vector3(x,y,z);
-
 const DT=1/240;
 const GRAVITY=9.8;
 const R=.065;
@@ -155,18 +139,8 @@ const BIN_R=.247;
 const BIN_H=.44;
 const BIN_TOP=BIN_BASE+BIN_H;
 
-const BANK_COMPUTER='computerBank';
-const BANK_WALL='wallBank';
-
-const PHYSICS={
-wallBounce:.91,
-computerBounce:.92,
-deskBounce:.70,
-objectBounce:.75,
-floorBounce:.57,
-rimBounce:.55,
-minimumBankSpeed:.45
-};
+const BANK1='computerBank';
+const BANK2='wallBank';
 
 const skins=[
 {id:'classic',name:'Classic Neon',price:0,color:'#75dce8',glow:'#32a6ba'},
@@ -245,7 +219,6 @@ const renderer=new THREE.WebGLRenderer({
 canvas:$('game'),
 antialias:true
 });
-
 renderer.setPixelRatio(Math.min(devicePixelRatio,1.7));
 renderer.outputColorSpace=THREE.SRGBColorSpace;
 renderer.shadowMap.enabled=true;
@@ -321,10 +294,8 @@ let n;
 do{
 n=Math.floor(Math.random()*palettes.length);
 }while(n===paletteIndex);
-
 paletteIndex=n;
 const p=palettes[n];
-
 for(const k in M)M[k].color.set(p[k]);
 scene.background.set(p.back);
 scene.fog.color.set(p.back);
@@ -357,12 +328,10 @@ m,x,y,z,parent
 function tube(a,b,r,m,parent=scene){
 const v=b.clone().sub(a);
 const mid=a.clone().add(b).multiplyScalar(.5);
-
 const o=mesh(
 new THREE.CylinderGeometry(r,r,v.length(),10),
 m,mid.x,mid.y,mid.z,parent
 );
-
 o.quaternion.setFromUnitVectors(V(0,1,0),v.normalize());
 return o;
 }
@@ -371,14 +340,11 @@ function graphic(w,h,draw){
 const c=document.createElement('canvas');
 c.width=w;
 c.height=h;
-
 const ctx=c.getContext('2d');
 draw(ctx,w,h);
-
 const t=new THREE.CanvasTexture(c);
 t.colorSpace=THREE.SRGBColorSpace;
 t.anisotropy=4;
-
 return new THREE.MeshBasicMaterial({
 map:t,side:THREE.DoubleSide
 });
@@ -391,14 +357,11 @@ c.fillRect(0,0,W,H);
 c.fillStyle=fg;
 c.textAlign='center';
 c.textBaseline='middle';
-
 const size=Math.min(
 70,
 Math.floor(W/(Math.max(...lines.map(s=>s.length))*.62))
 );
-
 c.font='bold '+size+'px Arial';
-
 lines.forEach((s,i)=>
 c.fillText(s,W/2,H*(i+1)/(lines.length+1))
 );
@@ -410,7 +373,7 @@ box(w+.045,h+.045,.018,cream,x,y,z);
 box(w,h,.023,m,x,y,z+.02);
 }
 
-// OFFICE WALLS
+// OFFICE LAYOUT
 
 box(9,.18,10,M.floor,0,-.09,-1.2);
 box(9,4,.14,M.back,0,2,-5.5);
@@ -420,7 +383,6 @@ box(.15,4,10,M.back,4.5,2,-1.2);
 box(4.4,2.55,.1,M.wall,0,1.275,-2.55);
 box(.1,2.55,4,M.wall,-2.22,1.275,-.55);
 box(.1,2.55,4,M.wall,2.22,1.275,-.55);
-
 box(4.5,.055,.13,chrome,0,2.57,-2.55);
 
 for(const x of [-2.22,2.22]){
@@ -440,12 +402,10 @@ poster(
 textPanel(['BURGER','BREAK!'],'#ad604f','#f8d18c'),
 -1.45,1.63,-2.47,.7,.85
 );
-
 poster(
 textPanel(['WORK','SMARTER'],'#587c87','#f6e8cf'),
 .28,1.78,-2.47,.62,.74
 );
-
 poster(
 textPanel(['YOU GOT','THIS!'],'#c6a16a','#3e3548'),
 -.57,2.02,-2.47,.46,.32
@@ -483,12 +443,7 @@ cal.rotation.y=Math.PI/2;
 for(let i=0;i<4;i++){
 const x=-.15+i*.23;
 const y=1.6+(i%2)*.12;
-
-box(
-.19,.18,.016,
-[yellow,coral,cyan,cream][i],
-x,y,-2.46
-);
+box(.19,.18,.016,[yellow,coral,cyan,cream][i],x,y,-2.46);
 sphere(.018,black,x,y+.075,-2.435);
 }
 
@@ -522,7 +477,6 @@ bevelSize:.025,
 bevelThickness:.022,
 curveSegments:12
 });
-
 deskGeometry.rotateX(Math.PI/2);
 mesh(deskGeometry,M.desk,0,.81,0);
 
@@ -531,50 +485,34 @@ const deskPolygon=deskShape.getPoints(24)
 
 function pointInsideDesk(x,z){
 let inside=false;
-
 for(let i=0,j=deskPolygon.length-1;i<deskPolygon.length;j=i++){
 const a=deskPolygon[i];
 const b=deskPolygon[j];
-
 if(
 ((a.z>z)!==(b.z>z))&&
 x<(b.x-a.x)*(z-a.z)/(b.z-a.z)+a.x
 )inside=!inside;
 }
-
 return inside;
 }
 
 function nearestDeskEdge(x,z){
 let best=Infinity,px=0,pz=0;
-
 for(let i=0;i<deskPolygon.length;i++){
 const a=deskPolygon[i];
 const b=deskPolygon[(i+1)%deskPolygon.length];
-
 const vx=b.x-a.x;
 const vz=b.z-a.z;
 const len=vx*vx+vz*vz;
-
 const t=len>0
 ?clamp(((x-a.x)*vx+(z-a.z)*vz)/len,0,1)
 :0;
-
 const ex=a.x+vx*t;
 const ez=a.z+vz*t;
 const d=(x-ex)**2+(z-ez)**2;
-
-if(d<best){
-best=d;
-px=ex;
-pz=ez;
+if(d<best){best=d;px=ex;pz=ez;}
 }
-}
-
-return{
-distance:Math.sqrt(best),
-x:px,z:pz
-};
+return{distance:Math.sqrt(best),x:px,z:pz};
 }
 
 box(4.03,.045,.055,M.trim,.235,.86,-2.49);
@@ -593,9 +531,7 @@ box(.2,.025,.03,chrome,-1.52,y,-1.4);
 
 box(2.12,.035,.035,wood,0,.73,-1.26);
 
-// PHYSICAL COLLIDERS
-// Only one collider is allowed to resolve a contact
-// at a time. This prevents double rebounds.
+// COLLISION SURFACES
 
 const obstacles=[];
 
@@ -616,13 +552,9 @@ addCollider(w,h,d,x,y,z,e,type,angle);
 return o;
 }
 
-// BANK 1 — COMPUTER
-// A single screen collision surface takes priority.
-// The computer body is not allowed to trigger a
-// second collision during the same contact.
+// BANK 1: ANGLED COMPUTER
 
 const COMPUTER_ANGLE=.43;
-
 const computerGroup=new THREE.Group();
 computerGroup.position.set(-.05,0,-1.96);
 computerGroup.rotation.y=COMPUTER_ANGLE;
@@ -649,21 +581,17 @@ gr.addColorStop(0,'#4d7d91');
 gr.addColorStop(1,'#28485b');
 c.fillStyle=gr;
 c.fillRect(0,0,w,h);
-
 c.fillStyle='#7eb1bf';
 c.fillRect(0,0,w,45);
 c.fillStyle='#f0dfbb';
 c.font='bold 26px Arial';
 c.textAlign='center';
 c.fillText('OFFICE OS',w/2,31);
-
 const labels=['MAIL','FILES','GAMES','PAINT'];
 const colors=['#b5c68c','#d4a58c','#b8a6d3','#8bc6cb'];
-
 for(let i=0;i<4;i++){
 const x=110+(i%2)*275;
 const y=125+Math.floor(i/2)*155;
-
 c.fillStyle=colors[i];
 c.fillRect(x-40,y-37,80,70);
 c.fillStyle='#fff3dd';
@@ -673,17 +601,6 @@ c.fillText(labels[i],x,y+68);
 });
 
 computerBox(.75,.56,.032,monitorTexture,0,1.35,.288);
-
-const screenCenter=computerWorldPoint(0,1.35,.293);
-
-addCollider(
-.76,.57,.055,
-screenCenter.x,screenCenter.y,screenCenter.z,
-PHYSICS.computerBounce,
-BANK_COMPUTER,
-COMPUTER_ANGLE
-);
-
 computerBox(.25,.12,.22,cream,0,.87,.03);
 computerBox(.65,.055,.37,cream,0,.8,.07);
 computerBox(.77,.035,.028,bankGold,0,1.63,.322);
@@ -696,19 +613,26 @@ textPanel(['BANK','1'],'#e5b76c','#45344e',256,256),
 .31,1.55,.34
 );
 
-// BANK 2 — ANGLED POSTER
-// The visible poster and collision surface have
-// exactly the same rotation.
+const computerFace=computerWorldPoint(0,1.35,.31);
 
-const BANK2_X=1.52;
-const BANK2_Y=1.71;
-const BANK2_Z=-2.405;
-const BANK2_W=.83;
+// One physical computer face.
+// No overlapping body collider.
+addCollider(
+.78,.59,.035,
+computerFace.x,computerFace.y,computerFace.z,
+.91,BANK1,COMPUTER_ANGLE
+);
+
+// BANK 2: ANGLED POSTER
+// The visible board and its collision face
+// share the same world position and rotation.
+
+const BANK2_X=1.53;
+const BANK2_Y=1.69;
+const BANK2_Z=-2.32;
+const BANK2_W=.85;
 const BANK2_H=.94;
-
-// Slight right-facing angle to direct a return
-// toward the basket instead of farther left.
-const BANK2_ANGLE=-.19;
+const BANK2_ANGLE=-.38;
 
 const bankPosterTexture=graphic(512,600,(c,w,h)=>{
 c.fillStyle='#f1d6a0';
@@ -719,7 +643,6 @@ c.fillStyle='#fae7b7';
 c.fillRect(32,32,w-64,h-64);
 c.fillStyle='#4c425b';
 c.textAlign='center';
-
 c.font='bold 92px Arial';
 c.fillText('BANK',w/2,180);
 c.font='bold 185px Arial';
@@ -737,21 +660,18 @@ box(
 BANK2_W+.065,BANK2_H+.065,.035,
 wood,0,0,-.025,bank2Group
 );
-
 box(
 BANK2_W,BANK2_H,.025,
 bankPosterTexture,0,0,0,bank2Group
 );
 
 addCollider(
-BANK2_W,BANK2_H,.055,
+BANK2_W,BANK2_H,.06,
 BANK2_X,BANK2_Y,BANK2_Z,
-PHYSICS.wallBounce,
-BANK_WALL,
-BANK2_ANGLE
+.91,BANK2,BANK2_ANGLE
 );
 
-// KEYBOARD AND OFFICE DECOR
+// OFFICE OBJECTS
 
 const keyboardGroup=new THREE.Group();
 keyboardGroup.position.set(-.06,0,-1.39);
@@ -759,13 +679,7 @@ keyboardGroup.rotation.y=-.12;
 scene.add(keyboardGroup);
 
 box(.85,.045,.28,cream,0,.86,0,keyboardGroup);
-
-addCollider(
-.85,.045,.28,
--.06,.86,-1.39,
-PHYSICS.objectBounce,
-'object',-.12
-);
+addCollider(.85,.045,.28,-.06,.86,-1.39,.75,'object',-.12);
 
 for(let row=0;row<3;row++){
 for(let col=0;col<10;col++){
@@ -779,7 +693,6 @@ keyboardGroup
 }
 
 box(.31,.012,.32,M.trim,.65,.835,-1.4);
-
 const mouse=sphere(.09,cream,.65,.88,-1.4);
 mouse.scale.set(.72,.45,1.25);
 
@@ -788,10 +701,7 @@ box(.3,.035,.095,M.cabinet,-1.42,1.04,-.75);
 
 for(let r=0;r<3;r++){
 for(let col=0;col<3;col++){
-box(
-.048,.013,.045,cream,
--1.51+col*.09,1.018,-.61+r*.08
-);
+box(.048,.013,.045,cream,-1.51+col*.09,1.018,-.61+r*.08);
 }
 }
 
@@ -808,11 +718,7 @@ cream,1.6,.97,-.16
 handle.rotation.y=Math.PI/2;
 
 for(let i=0;i<3;i++){
-box(
-.43,.045,.3,
-[coral,cyan,yellow][i],
--1.47,.87+i*.049,-1.22
-);
+box(.43,.045,.3,[coral,cyan,yellow][i],-1.47,.87+i*.049,-1.22);
 }
 
 for(let i=0;i<4;i++){
@@ -827,7 +733,6 @@ fan.scale.z=.25;
 
 for(let i=0;i<4;i++){
 const a=i*Math.PI/2;
-
 const blade=sphere(
 .105,cyan,
 -1.66+Math.cos(a)*.14,
@@ -855,9 +760,7 @@ for(let i=0;i<7;i++){
 const a=i*Math.PI*2/7;
 const x=1.46+Math.cos(a)*.16;
 const z=-1.78+Math.sin(a)*.16;
-
 tube(V(1.46,1.04,-1.78),V(x,1.35,z),.015,plant);
-
 const leaf=sphere(.095,plant,x,1.35,z);
 leaf.scale.set(.7,1,.45);
 }
@@ -878,17 +781,10 @@ targetGroup.position.set(BIN_X,BIN_BASE,BIN_Z);
 scene.add(targetGroup);
 
 const binMaterial=new THREE.MeshStandardMaterial({
-color:'#6b9293',
-roughness:.72,
-side:THREE.DoubleSide
+color:'#6b9293',roughness:.72,side:THREE.DoubleSide
 });
 
-cyl(
-BIN_R,.19,BIN_H,
-binMaterial,0,BIN_H/2,0,
-targetGroup,true
-);
-
+cyl(BIN_R,.19,BIN_H,binMaterial,0,BIN_H/2,0,targetGroup,true);
 cyl(.19,.19,.025,dark,0,.012,0,targetGroup);
 
 const rim=mesh(
@@ -910,8 +806,7 @@ roughness:.65
 
 const ball=mesh(
 new THREE.SphereGeometry(R,20,16),
-ballMat,
-START.x,START.y,START.z
+ballMat,START.x,START.y,START.z
 );
 
 const viewModel=new THREE.Group();
@@ -926,11 +821,7 @@ const palm=sphere(.082,skin,0,-.075,.05,handGroup);
 palm.scale.set(1,.7,1.35);
 
 for(let i=0;i<4;i++){
-const finger=sphere(
-.025,skin,
--.06+i*.04,-.015,-.035,
-handGroup
-);
+const finger=sphere(.025,skin,-.06+i*.04,-.015,-.035,handGroup);
 finger.scale.set(.8,1.4,1.35);
 }
 
@@ -952,71 +843,68 @@ scene.add(ballLight);
 const trail=new THREE.Line(
 new THREE.BufferGeometry(),
 new THREE.LineBasicMaterial({
-color:'#8dd8e0',
-transparent:true,
-opacity:.6
+color:'#8dd8e0',transparent:true,opacity:.6
 })
 );
 scene.add(trail);
 trail.visible=false;
 
-// PRECISE AIMING GUIDE
-// Each guide dot represents a recorded physics
-// position. No interpolated rebound directions.
+// GUIDE VISUALS
+
+const guideYellow=new THREE.LineBasicMaterial({
+color:'#ffe4a2',depthTest:false,transparent:true,opacity:.95
+});
+
+const guideBlue=new THREE.LineBasicMaterial({
+color:'#78d6ff',depthTest:false,transparent:true,opacity:.95
+});
+
+const guideGreen=new THREE.LineBasicMaterial({
+color:'#8aff9e',depthTest:false,transparent:true,opacity:.95
+});
+
+const guideLines=[];
+
+for(let i=0;i<2;i++){
+const line=new THREE.Line(
+new THREE.BufferGeometry(),
+i===0?guideYellow:guideBlue
+);
+line.visible=false;
+line.renderOrder=100;
+scene.add(line);
+guideLines.push(line);
+}
 
 const guideDots=[];
 
-const guideBefore=new THREE.MeshBasicMaterial({
-color:'#ffe4a2',
-depthTest:false,
-depthWrite:false
-});
-
-const guideAfter=new THREE.MeshBasicMaterial({
-color:'#78d6ff',
-depthTest:false,
-depthWrite:false
-});
-
-const guideSuccess=new THREE.MeshBasicMaterial({
-color:'#8aff9e',
-depthTest:false,
-depthWrite:false
-});
-
-for(let i=0;i<75;i++){
+for(let i=0;i<65;i++){
 const d=mesh(
-new THREE.SphereGeometry(.014,8,6),
-guideBefore,0,-100,0
-);
-d.visible=false;
-d.renderOrder=100;
-guideDots.push(d);
-}
-
-const bounceDots=[];
-
-for(let i=0;i<3;i++){
-const d=mesh(
-new THREE.SphereGeometry(.037,10,8),
+new THREE.SphereGeometry(.016,8,6),
 new THREE.MeshBasicMaterial({
-color:'#ff85a9',
-depthTest:false,
-depthWrite:false
+color:'#ffe4a2',depthTest:false
 }),
 0,-100,0
 );
 d.visible=false;
 d.renderOrder=101;
-bounceDots.push(d);
+guideDots.push(d);
 }
 
-const landingRing=mesh(
-new THREE.TorusGeometry(.14,.013,8,32),
+const impactMarker=mesh(
+new THREE.SphereGeometry(.045,12,8),
 new THREE.MeshBasicMaterial({
-color:'#8aff9e',
-depthTest:false,
-depthWrite:false
+color:'#ff83ad',depthTest:false
+}),
+0,-100,0
+);
+impactMarker.visible=false;
+impactMarker.renderOrder=102;
+
+const landingRing=mesh(
+new THREE.TorusGeometry(.14,.014,8,32),
+new THREE.MeshBasicMaterial({
+color:'#8aff9e',depthTest:false
 }),
 0,-100,0
 );
@@ -1024,29 +912,16 @@ landingRing.rotation.x=Math.PI/2;
 landingRing.visible=false;
 landingRing.renderOrder=102;
 
-const endMarker=mesh(
-new THREE.SphereGeometry(.038,12,8),
-new THREE.MeshBasicMaterial({
-color:'#ffffff',
-depthTest:false,
-depthWrite:false
-}),
-0,-100,0
-);
-endMarker.visible=false;
-endMarker.renderOrder=102;
-
 function hideGuide(){
+for(const l of guideLines)l.visible=false;
 for(const d of guideDots)d.visible=false;
-for(const d of bounceDots)d.visible=false;
+impactMarker.visible=false;
 landingRing.visible=false;
-endMarker.visible=false;
 $('aim').textContent='';
 }
 
 function updateSkin(){
 const s=skins.find(x=>x.id===equipped)||skins[0];
-
 ballMat.color.set(s.color);
 ballMat.emissive.set(s.glow);
 trail.material.color.set(s.color);
@@ -1080,7 +955,6 @@ let trailPoints=[];
 let physicsAccumulator=0;
 let shotMisses=0;
 let visualFlash=0;
-let activePrediction=null;
 let aimDX=0;
 let aimDY=0;
 let aimDirty=false;
@@ -1091,39 +965,28 @@ challenges.find(c=>c.id===challengeId);
 
 function showScreen(id){
 screen=id;
-
 document.querySelectorAll('.screen').forEach(e=>
 e.classList.remove('active')
 );
-
 if(id!=='playing')$(id).classList.add('active');
 
 const play=id==='playing';
-
 $('hud').style.display=play?'grid':'none';
 
-for(const k of [
-'label','message','aim','power','hint'
-]){
+for(const k of ['label','message','aim','power','hint']){
 $(k).style.display=play?'block':'none';
 }
 
 $('goal').style.display=
 play&&mode==='challenge'?'block':'none';
 
-$('pause').style.display=
-play&&!over?'block':'none';
-
-$('again').style.display=
-play&&over?'block':'none';
-
+$('pause').style.display=play&&!over?'block':'none';
+$('again').style.display=play&&over?'block':'none';
 viewModel.visible=play&&!shot&&!over;
 
 if(id==='menu'){
-$('menuStats').textContent=
-'Best: '+best+' · Coins: '+coins;
+$('menuStats').textContent='Best: '+best+' · Coins: '+coins;
 }
-
 if(id==='challenges')renderChallenges();
 if(id==='shop')renderShop();
 if(id==='settings')renderSettings();
@@ -1131,12 +994,8 @@ if(id==='settings')renderSettings();
 
 function updateHUD(){
 $('score').textContent='Score: '+score;
-
 $('miss').textContent=
-mode==='practice'
-?'Misses: '+misses
-:'Misses: '+misses+'/3';
-
+mode==='practice'?'Misses: '+misses:'Misses: '+misses+'/3';
 $('combo').textContent='Combo: '+combo;
 $('coins').textContent='Coins: '+coins;
 $('best').textContent='Best: '+best;
@@ -1159,8 +1018,7 @@ if(mode!=='challenge'||!c)return;
 const left=c.limit
 ?Math.max(0,Math.ceil(
 c.limit-(performance.now()-challengeStart)/1000
-))
-:null;
+)):null;
 
 $('goal').textContent=
 c.desc+' · '+challengeCount+'/'+c.need+
@@ -1174,30 +1032,24 @@ $('message').textContent=t;
 if(duration){
 const s=session;
 messageTimer=setTimeout(()=>{
-if(s===session&&!over){
-$('message').textContent='';
-}
+if(s===session&&!over)$('message').textContent='';
 },duration);
 }
 }
 
 function beep(freq){
 if(!soundOn)return;
-
 try{
 audio=audio||new(
 window.AudioContext||window.webkitAudioContext
 )();
-
 const o=audio.createOscillator();
 const g=audio.createGain();
-
 o.frequency.value=freq;
 g.gain.setValueAtTime(.04,audio.currentTime);
 g.gain.exponentialRampToValueAtTime(
 .001,audio.currentTime+.13
 );
-
 o.connect(g);
 g.connect(audio.destination);
 o.start();
@@ -1213,15 +1065,12 @@ visualFlash=.15;
 
 function celebrate(big=false){
 if(!effectsOn)return;
-
 const root=$('celebration');
 root.innerHTML='';
-
 const colors=[
 '#ffe39a','#82e7f2','#ff9ac6',
 '#bda2ff','#98f3a0'
 ];
-
 const count=big?55:24;
 
 for(let i=0;i<count;i++){
@@ -1230,33 +1079,18 @@ e.className='confetti';
 e.style.left=(Math.random()*100)+'%';
 e.style.background=colors[i%colors.length];
 e.style.animationDelay=(Math.random()*.35)+'s';
-
 e.style.setProperty(
 '--drift',(Math.random()*260-130)+'px'
 );
-
 e.style.setProperty(
 '--spin',(Math.random()*1000-500)+'deg'
 );
-
 root.appendChild(e);
 }
 
 setTimeout(()=>{
-if(root.childElementCount===count){
-root.innerHTML='';
-}
+if(root.childElementCount===count)root.innerHTML='';
 },2200);
-}
-
-function impactEffect(type){
-if(!effectsOn)return;
-
-if(type===BANK_COMPUTER){
-flashScreen('#a7e8ff');
-}else if(type===BANK_WALL){
-flashScreen('#ffe1a3');
-}
 }
 
 function resetBall(){
@@ -1271,7 +1105,6 @@ heldBall.visible=true;
 ballLight.position.copy(START);
 trail.visible=false;
 trailPoints=[];
-activePrediction=null;
 aimDirty=false;
 lastAimPhase=-1;
 hideGuide();
@@ -1286,7 +1119,6 @@ clearTimeout(messageTimer);
 
 mode=newMode;
 challengeId=newMode==='challenge'?id:null;
-
 score=0;
 misses=0;
 combo=0;
@@ -1319,9 +1151,7 @@ message('READY TO FLICK!',1100);
 
 // MEDALS
 
-const medalRank={
-none:0,bronze:1,silver:2,gold:3
-};
+const medalRank={none:0,bronze:1,silver:2,gold:3};
 
 function getMedal(){
 if(shotMisses===0)return'gold';
@@ -1331,10 +1161,7 @@ return'bronze';
 
 function medalIcon(m){
 return{
-gold:'🥇',
-silver:'🥈',
-bronze:'🥉',
-none:'○'
+gold:'🥇',silver:'🥈',bronze:'🥉',none:'○'
 }[m]||'○';
 }
 
@@ -1343,7 +1170,6 @@ const c=activeChallenge();
 if(!c)return;
 
 const fresh=!completed.includes(c.id);
-
 if(fresh){
 completed.push(c.id);
 coins+=c.reward;
@@ -1354,31 +1180,19 @@ const previous=medals[c.id]||'none';
 
 if(medalRank[earned]>medalRank[previous]){
 medals[c.id]=earned;
-
-coins+={
-bronze:10,
-silver:25,
-gold:50
-}[earned];
+coins+={bronze:10,silver:25,gold:50}[earned];
 }
 
 save();
-
 over=true;
 locked=true;
 shot=null;
 viewModel.visible=false;
 updateHUD();
-
-message(
-'COMPLETE! '+medalIcon(earned)+
-' '+earned.toUpperCase()
-);
-
+message('COMPLETE! '+medalIcon(earned)+' '+earned.toUpperCase());
 celebrate(true);
 flashScreen('#ffe6a0');
 beep(950);
-
 $('again').textContent='CHALLENGES';
 $('again').style.display='block';
 $('pause').style.display='none';
@@ -1407,7 +1221,6 @@ successfulShots++;
 combo++;
 
 const bank=shot.banks>0;
-
 const points=
 10*Math.min(combo,3)+
 (perfect?20:0)+
@@ -1425,20 +1238,18 @@ if(bank)banks++;
 if(mode==='challenge'){
 const c=activeChallenge();
 streak++;
-
 if(c){
 if(c.type==='streak')challengeCount=streak;
 if(c.type==='hits')challengeCount++;
 if(c.type==='banks'&&bank)challengeCount++;
 if(c.type==='perfect'&&perfect)challengeCount++;
 }
-
 updateGoal();
 }
 
-if(shot.bankTypes.includes(BANK_COMPUTER)){
+if(shot.bankTypes.includes(BANK1)){
 message('COMPUTER BANK! +'+points);
-}else if(shot.bankTypes.includes(BANK_WALL)){
+}else if(shot.bankTypes.includes(BANK2)){
 message('POSTER BANK! +'+points);
 }else{
 message(
@@ -1459,10 +1270,7 @@ shotMisses++;
 combo=0;
 streak=0;
 
-if(
-mode==='challenge'&&
-activeChallenge()?.type==='streak'
-){
+if(mode==='challenge'&&activeChallenge()?.type==='streak'){
 challengeCount=0;
 updateGoal();
 }
@@ -1474,8 +1282,7 @@ beep(230);
 updateHUD();
 
 if(
-mode==='challenge'&&
-hit&&
+mode==='challenge'&&hit&&
 challengeCount>=activeChallenge().need
 ){
 completeChallenge();
@@ -1499,11 +1306,7 @@ return;
 
 locked=false;
 
-if(
-mode==='endless'&&
-hit&&
-successfulShots%3===0
-){
+if(mode==='endless'&&hit&&successfulShots%3===0){
 round++;
 shufflePalette();
 updateLabel();
@@ -1516,7 +1319,7 @@ resetBall();
 },1050);
 }
 
-// SWIPE CONTROLS
+// AIMING
 
 function swipeToPower(distance){
 return clamp(
@@ -1526,14 +1329,8 @@ return clamp(
 }
 
 function launchVelocity(dx,dy){
-const swipeDistance=Math.max(0,-dy);
-const power=swipeToPower(swipeDistance);
-
-const sideways=clamp(
-dx/(innerWidth*.42),
--1.4,1.4
-);
-
+const power=swipeToPower(Math.max(0,-dy));
+const sideways=clamp(dx/(innerWidth*.42),-1.4,1.4);
 const forward=2.7+power*2.5;
 const vertical=1.55+power*4.7;
 const lateral=sideways*(2.8+power*1.9);
@@ -1541,15 +1338,12 @@ const lateral=sideways*(2.8+power*1.9);
 const velocity=FORWARD.clone()
 .multiplyScalar(forward)
 .addScaledVector(RIGHT,lateral);
-
 velocity.y=vertical;
 
 return{power,velocity};
 }
 
-// FIXED-STEP PHYSICS
-// The preview and actual shot call the exact
-// same step function with identical initial state.
+// SHARED FIXED-STEP PHYSICS
 
 function makeState(velocity){
 return{
@@ -1573,19 +1367,10 @@ stepCount:0
 
 function rebound(s,n,e,bank=true,type='object'){
 const speed=s.v.dot(n);
-
 if(speed>=-.01)return false;
 
 const impact=-speed;
 let bounce=e;
-
-if(
-['wall','computer',BANK_WALL,BANK_COMPUTER].includes(type)&&
-impact>1.1
-){
-bounce=Math.min(.94,e+.035);
-}
-
 if(impact<.13)bounce=Math.min(bounce,.3);
 
 s.v.addScaledVector(n,-(1+bounce)*speed);
@@ -1596,8 +1381,8 @@ const tangent=s.v.clone()
 
 const friction=
 type==='desk'?.965:
-['wall',BANK_WALL].includes(type)?.992:
-['computer',BANK_COMPUTER].includes(type)?.985:
+type===BANK1?.985:
+type===BANK2?.992:
 .975;
 
 s.v.copy(n.clone().multiplyScalar(normalSpeed));
@@ -1606,7 +1391,7 @@ s.v.addScaledVector(tangent,friction);
 s.contacts++;
 s.lastImpact=impact;
 
-if(bank&&impact>PHYSICS.minimumBankSpeed){
+if(bank&&impact>.45){
 s.banks++;
 
 if(s.events.length<30){
@@ -1621,19 +1406,14 @@ if(!s.bankTypes.includes(type)){
 s.bankTypes.push(type);
 }
 }
-
 return true;
 }
 
-// ONE COLLISION PER PHYSICS STEP
-// This avoids the computer double-bounce bug.
+// Collision candidate for a rotated box.
+// The result includes a contact normal and
+// penetration depth but does not mutate the ball.
 
-function collideObstacle(s){
-let best=null;
-let bestDepth=0;
-let bestNormal=null;
-
-for(const b of obstacles){
+function boxContact(s,b){
 const relative=s.p.clone().sub(b.c);
 
 const local=V(
@@ -1651,7 +1431,7 @@ clamp(local.z,-b.h.z,b.h.z)
 const delta=local.clone().sub(nearest);
 const d2=delta.lengthSq();
 
-if(d2>=R*R)continue;
+if(d2>=R*R)return null;
 
 let normal,depth;
 
@@ -1665,122 +1445,141 @@ const faces=[
 {d:b.h.y-Math.abs(local.y),axis:1},
 {d:b.h.z-Math.abs(local.z),axis:2}
 ];
-
 faces.sort((a,b)=>a.d-b.d);
+
 normal=V(0,0,0);
-
 const axis=faces[0].axis;
-
 normal.setComponent(
-axis,
-Math.sign(local.getComponent(axis))||1
+axis,Math.sign(local.getComponent(axis))||1
 );
-
 depth=R+faces[0].d;
 }
 
-const worldNormal=V(
+const n=V(
 normal.x*b.cos+normal.z*b.sin,
 normal.y,
 -normal.x*b.sin+normal.z*b.cos
 ).normalize();
 
-const incoming=s.v.dot(worldNormal);
+if(s.v.dot(n)>=-.01)return null;
 
-// Ignore contacts that are already separating.
-if(incoming>=-.01)continue;
-
-// Prioritize the largest meaningful penetration.
-// A bank target wins an exact tie.
-const priority=
-b.type===BANK_COMPUTER||b.type===BANK_WALL
-?.0001:0;
-
-if(depth+priority>bestDepth){
-bestDepth=depth+priority;
-best=b;
-bestNormal=worldNormal;
-}
+return{
+depth,
+normal:n,
+e:b.e,
+type:b.type,
+priority:
+b.type===BANK1||b.type===BANK2?4:1
+};
 }
 
-if(!best)return false;
+// Room wall candidates use the same collision
+// selection system as furniture and bank targets.
 
-s.p.addScaledVector(bestNormal,bestDepth+.001);
-
-return rebound(
-s,bestNormal,best.e,true,best.type
-);
-}
-
-function collideRoom(s){
+function wallCandidates(s){
 const p=s.p;
+const hits=[];
 
-// Cubicle side walls.
+function add(depth,n,type='wall'){
+if(depth>0&&s.v.dot(n)<-.01){
+hits.push({
+depth,normal:n,e:.91,type,priority:0
+});
+}
+}
+
+if(p.y<2.55&&p.z>-2.55&&p.z<1.45){
+add(-2.17+R-p.x,V(1,0,0));
+add(p.x-(2.17-R),V(-1,0,0));
+}
+
+if(p.y<2.55&&Math.abs(p.x)<2.2){
+add(-2.50+R-p.z,V(0,0,1));
+}
+
+add(-4.35+R-p.x,V(1,0,0));
+add(p.x-(4.35-R),V(-1,0,0));
+add(-5.35+R-p.z,V(0,0,1));
+add(p.z-(3.7-R),V(0,0,-1));
+add(p.y-(3.8-R),V(0,-1,0));
+
+return hits;
+}
+
+function deskContact(s,previous){
+const p=s.p;
+const inside=pointInsideDesk(p.x,p.z);
+const edge=nearestDeskEdge(p.x,p.z);
+const above=inside||edge.distance<R*.85;
 
 if(
-p.x<-2.17+R&&
-p.y<2.55&&
-p.z>-2.55&&p.z<1.45
+above&&s.v.y<0&&
+(
+(previous.y>=DESK_TOP+R-.005&&p.y<=DESK_TOP+R)||
+(p.y>=DESK_TOP-R*.45&&p.y<DESK_TOP+R)
+)
 ){
-p.x=-2.17+R;
-rebound(s,V(1,0,0),PHYSICS.wallBounce,true,'wall');
+return{
+depth:DESK_TOP+R-p.y+.001,
+normal:V(0,1,0),
+e:.70,type:'desk',priority:2
+};
 }
 
 if(
-p.x>2.17-R&&
-p.y<2.55&&
-p.z>-2.55&&p.z<1.45
+!inside&&edge.distance<R&&
+p.y>DESK_TOP-.09&&p.y<DESK_TOP+R*.6
 ){
-p.x=2.17-R;
-rebound(s,V(-1,0,0),PHYSICS.wallBounce,true,'wall');
+const dx=p.x-edge.x;
+const dz=p.z-edge.z;
+const l=Math.hypot(dx,dz)||1;
+const n=V(dx/l,0,dz/l);
+
+if(s.v.dot(n)<-.01){
+return{
+depth:R-edge.distance+.001,
+normal:n,
+e:.70,type:'desk',priority:2
+};
+}
 }
 
-// Back wall is behind BANK 2.
-// Its collision is resolved only after the poster
-// has had the opportunity to catch the ball.
-
-if(
-p.z<-2.50+R&&
-p.y<2.55&&
-Math.abs(p.x)<2.2
-){
-p.z=-2.50+R;
-rebound(s,V(0,0,1),PHYSICS.wallBounce,true,'wall');
+return null;
 }
 
-if(p.x<-4.35+R){
-p.x=-4.35+R;
-rebound(s,V(1,0,0),PHYSICS.wallBounce,true,'wall');
+// Select the most important physical contact
+// once per timestep. This prevents an object
+// and the wall from both reversing velocity
+// during the same instant.
+
+function resolveWorld(s,previous){
+const candidates=wallCandidates(s);
+const desk=deskContact(s,previous);
+if(desk)candidates.push(desk);
+
+for(const b of obstacles){
+const c=boxContact(s,b);
+if(c)candidates.push(c);
 }
 
-if(p.x>4.35-R){
-p.x=4.35-R;
-rebound(s,V(-1,0,0),PHYSICS.wallBounce,true,'wall');
+if(candidates.length){
+candidates.sort((a,b)=>{
+if(Math.abs(b.depth-a.depth)<.035){
+return b.priority-a.priority;
+}
+return b.depth-a.depth;
+});
+
+const c=candidates[0];
+s.p.addScaledVector(c.normal,c.depth+.001);
+rebound(s,c.normal,c.e,true,c.type);
 }
 
-if(p.z<-5.35+R){
-p.z=-5.35+R;
-rebound(s,V(0,0,1),PHYSICS.wallBounce,true,'wall');
-}
-
-if(p.z>3.7-R){
-p.z=3.7-R;
-rebound(s,V(0,0,-1),PHYSICS.wallBounce,true,'wall');
-}
-
-if(p.y>3.8-R){
-p.y=3.8-R;
-rebound(s,V(0,-1,0),.7,true,'wall');
-}
-
-if(p.y<R){
-p.y=R;
+if(s.p.y<R){
+s.p.y=R;
 
 if(s.v.y<-.2){
-rebound(
-s,V(0,1,0),
-PHYSICS.floorBounce,false,'floor'
-);
+rebound(s,V(0,1,0),.57,false,'floor');
 s.v.x*=.94;
 s.v.z*=.94;
 }else{
@@ -1796,59 +1595,10 @@ s.groundTime=0;
 }
 }
 
-function collideDesk(s,previous){
-const p=s.p;
-const inside=pointInsideDesk(p.x,p.z);
-const edge=nearestDeskEdge(p.x,p.z);
-const above=inside||edge.distance<R*.85;
-
-if(
-above&&
-previous.y>=DESK_TOP+R-.005&&
-p.y<=DESK_TOP+R&&
-s.v.y<0
-){
-p.y=DESK_TOP+R+.001;
-rebound(s,V(0,1,0),PHYSICS.deskBounce,true,'desk');
-return true;
-}
-
-if(
-above&&
-p.y>=DESK_TOP-R*.45&&
-p.y<DESK_TOP+R&&
-s.v.y<0
-){
-p.y=DESK_TOP+R+.001;
-rebound(s,V(0,1,0),PHYSICS.deskBounce,true,'desk');
-return true;
-}
-
-if(
-!inside&&
-edge.distance<R&&
-p.y>DESK_TOP-.09&&
-p.y<DESK_TOP+R*.6
-){
-const dx=p.x-edge.x;
-const dz=p.z-edge.z;
-const l=Math.hypot(dx,dz)||1;
-const n=V(dx/l,0,dz/l);
-
-p.addScaledVector(n,R-edge.distance+.001);
-return rebound(s,n,PHYSICS.deskBounce,true,'desk');
-}
-
-return false;
-}
-
 // MOVING BIN
-// Preview and real flight use the same shot
-// clock, not separate frame clocks.
 
 function targetXAt(phase){
 const c=activeChallenge();
-
 return mode==='challenge'&&c?.moving
 ?BIN_X+Math.sin(phase*1.25)*.08
 :BIN_X;
@@ -1869,14 +1619,11 @@ const t=clamp(
 (previous.y-BIN_TOP)/(previous.y-p.y),
 0,1
 );
-
 const x=previous.x+(p.x-previous.x)*t;
 const z=previous.z+(p.z-previous.z)*t;
-
 const dist=Math.hypot(x-cx,z-BIN_Z);
-const opening=BIN_R-R+.025;
 
-if(dist<opening){
+if(dist<BIN_R-R+.025){
 s.scored=true;
 s.perfect=dist<BIN_R*.27;
 s.done=true;
@@ -1885,32 +1632,24 @@ return;
 }
 
 const ringDistance=Math.hypot(
-horizontal-BIN_R,
-p.y-BIN_TOP
+horizontal-BIN_R,p.y-BIN_TOP
 );
 
 if(ringDistance<R+.02&&s.cooldown<=0){
 const radial=V(
-dx/(horizontal||1),
-0,
-dz/(horizontal||1)
+dx/(horizontal||1),0,dz/(horizontal||1)
 );
-
 const normal=V(
 radial.x*(horizontal-BIN_R),
 p.y-BIN_TOP,
 radial.z*(horizontal-BIN_R)
 ).normalize();
 
-if(normal.lengthSq()<.01){
-normal.set(0,1,0);
-}
+if(normal.lengthSq()<.01)normal.set(0,1,0);
 
 const incoming=s.v.clone();
 
-if(rebound(
-s,normal,PHYSICS.rimBounce,false,'rim'
-)){
+if(rebound(s,normal,.55,false,'rim')){
 p.addScaledVector(normal,.016);
 
 if(
@@ -1918,10 +1657,7 @@ incoming.y<-.3&&
 horizontal>BIN_R*.78&&
 horizontal<BIN_R+R+.035
 ){
-const inward=V(
-cx-p.x,0,BIN_Z-p.z
-).normalize();
-
+const inward=V(cx-p.x,0,BIN_Z-p.z).normalize();
 s.v.addScaledVector(inward,.14);
 }
 
@@ -1935,34 +1671,18 @@ p.y<BIN_TOP-R*.3&&
 Math.abs(horizontal-BIN_R)<R
 ){
 const inside=horizontal<BIN_R;
-
 const radial=V(
-dx/(horizontal||1),
-0,
-dz/(horizontal||1)
+dx/(horizontal||1),0,dz/(horizontal||1)
 );
-
-const normal=inside
-?radial.clone().negate()
-:radial;
+const normal=inside?radial.clone().negate():radial;
 
 p.x=cx+radial.x*(BIN_R+(inside?-R:R));
 p.z=BIN_Z+radial.z*(BIN_R+(inside?-R:R));
-
 rebound(s,normal,.58,false,'bin');
 }
-
-if(
-p.y<BIN_BASE+R&&
-p.y>BIN_BASE-R&&
-horizontal<BIN_R-R
-){
-p.y=BIN_BASE+R;
-rebound(s,V(0,1,0),.35,false,'bin');
-}
 }
 
-// SINGLE SHARED PHYSICS STEP
+// EXACT SHARED STEP
 
 function physicsStep(s,cx){
 if(s.done)return;
@@ -1976,25 +1696,10 @@ s.cooldown=Math.max(0,s.cooldown-DT);
 s.v.y-=GRAVITY*DT;
 s.p.addScaledVector(s.v,DT);
 
-// Basket crossing is checked before any later
-// collision can change the shot outcome.
-
 collideBin(s,previous,cx);
-
 if(s.done)return;
 
-// Resolve one meaningful surface collision per
-// step to avoid accidental double reflections.
-
-const objectHit=collideObstacle(s);
-
-if(!objectHit){
-const deskHit=collideDesk(s,previous);
-
-if(!deskHit){
-collideRoom(s);
-}
-}
+resolveWorld(s,previous);
 
 if(
 s.age>=5||
@@ -2004,51 +1709,28 @@ s.done=true;
 }
 }
 
-// EXACT TRAJECTORY SIMULATION
+// PREDICTION
 
 function simulateShot(velocity,startingPhase){
 const sim=makeState(velocity);
-
 const samples=[{
-p:sim.p.clone(),
-step:0,
-after:false
+p:sim.p.clone(),step:0
 }];
 
-let firstBounceStep=-1;
-
 for(let i=0;i<MAX_STEPS;i++){
-const phase=
-startingPhase+(i+1)*DT;
-
-const cx=targetXAt(phase);
-
-physicsStep(sim,cx);
-
-if(firstBounceStep<0&&sim.events.length){
-firstBounceStep=sim.events[0].step;
-}
+const phase=startingPhase+(i+1)*DT;
+physicsStep(sim,targetXAt(phase));
 
 samples.push({
 p:sim.p.clone(),
-step:sim.stepCount,
-after:firstBounceStep>=0
+step:sim.stepCount
 });
 
 if(sim.done)break;
 }
 
-return{
-sim,
-samples,
-startingPhase,
-firstBounceStep
-};
+return{sim,samples,startingPhase};
 }
-
-// ACCURATE GUIDE DRAWING
-// Never interpolate through a collision.
-// Use the recorded post-collision state directly.
 
 function drawGuide(dx,dy){
 if(!guideOn){
@@ -2057,167 +1739,113 @@ return;
 }
 
 const data=launchVelocity(dx,dy);
-
-const prediction=simulateShot(
-data.velocity,
-targetPhase
-);
-
-activePrediction=prediction;
-
+const prediction=simulateShot(data.velocity,targetPhase);
 const sim=prediction.sim;
 const samples=prediction.samples;
 
-const selected=[];
-const first=prediction.firstBounceStep;
+const firstEvent=sim.events[0]||null;
+const splitStep=firstEvent?firstEvent.step:Infinity;
 
-// Show the useful first flight, the impact,
-// and the rebound-to-bin section.
+const before=[];
+const after=[];
 
-if(first<0){
-const stride=Math.max(
-1,
-Math.ceil(samples.length/guideDots.length)
-);
+for(let i=0;i<samples.length;i++){
+const s=samples[i];
 
-for(let i=0;i<samples.length;i+=stride){
-selected.push(samples[i]);
+if(s.step<=splitStep){
+before.push(s.p);
 }
-
-if(samples.length>1){
-selected.push(samples[samples.length-1]);
-}
-}else{
-const before=samples.filter(
-p=>p.step<=first
-);
-
-const after=samples.filter(
-p=>p.step>first
-);
-
-const beforeSlots=24;
-const afterSlots=guideDots.length-beforeSlots;
-
-function pick(points,slots){
-if(!points.length)return;
-
-const stride=Math.max(
-1,
-Math.ceil(points.length/slots)
-);
-
-for(let i=0;i<points.length;i+=stride){
-selected.push(points[i]);
+if(firstEvent&&s.step>=splitStep){
+after.push(s.p);
 }
 }
 
-pick(before,beforeSlots);
-pick(after,afterSlots);
-
-selected.push(samples[samples.length-1]);
+function setLine(line,points){
+line.geometry.dispose();
+line.geometry=new THREE.BufferGeometry()
+.setFromPoints(points.length>=2?points:[V(0,-100,0),V(0,-100,0)]);
+line.visible=points.length>=2;
 }
 
+setLine(guideLines[0],before);
+setLine(guideLines[1],after);
+
+guideLines[0].material=sim.scored?guideGreen:guideYellow;
+guideLines[1].material=sim.scored?guideGreen:guideBlue;
+
+// Show evenly spaced sampled points while
+// preserving exact positions at the rebound.
+
+const count=Math.min(guideDots.length,samples.length);
 for(let i=0;i<guideDots.length;i++){
 const d=guideDots[i];
-const point=selected[i];
+d.visible=i<count;
+if(!d.visible)continue;
 
-d.visible=!!point;
-
-if(!point)continue;
+const index=Math.round(
+i*(samples.length-1)/Math.max(1,count-1)
+);
+const point=samples[index];
 
 d.position.copy(point.p);
-
-d.material=sim.scored
-?guideSuccess
-:point.after
-?guideAfter
-:guideBefore;
-}
-
-// Mark exact collision positions.
-
-for(let i=0;i<bounceDots.length;i++){
-const event=sim.events[i];
-
-bounceDots[i].visible=!!event;
-
-if(event){
-bounceDots[i].position.copy(event.p);
-}
-}
-
-// Show the predicted final position.
-
-endMarker.visible=
-!sim.scored&&samples.length>1;
-
-if(endMarker.visible){
-endMarker.position.copy(
-samples[samples.length-1].p
+d.material.color.set(
+sim.scored?'#8aff9e':
+point.step>splitStep?'#78d6ff':
+'#ffe4a2'
 );
+}
+
+impactMarker.visible=!!firstEvent;
+
+if(firstEvent){
+impactMarker.position.copy(firstEvent.p);
 }
 
 landingRing.visible=sim.scored;
 
 if(sim.scored){
-const phase=
-prediction.startingPhase+
-sim.stepCount*DT;
-
+const phase=prediction.startingPhase+sim.stepCount*DT;
 landingRing.position.set(
-targetXAt(phase),
-BIN_TOP+.012,
-BIN_Z
+targetXAt(phase),BIN_TOP+.012,BIN_Z
 );
+}
 
+if(sim.scored){
 $('aim').textContent=
-sim.banks>0
+sim.bankTypes.includes(BANK2)
+?'✓ BANK 2 TO BASKET!'
+:sim.bankTypes.includes(BANK1)
+?'✓ BANK 1 TO BASKET!'
+:sim.banks>0
 ?'✓ BANK SHOT LINED UP!'
 :'✓ BASKET LINED UP!';
-}else if(sim.bankTypes.includes(BANK_WALL)){
-$('aim').textContent=
-'BANK 2 HIT · FOLLOW BLUE DOTS';
-}else if(sim.bankTypes.includes(BANK_COMPUTER)){
-$('aim').textContent=
-'BANK 1 HIT · FOLLOW BLUE DOTS';
-}else if(sim.events.length){
-$('aim').textContent=
-'BLUE = REBOUND PATH';
+}else if(sim.bankTypes.includes(BANK2)){
+$('aim').textContent='BANK 2 HIT · ADJUST TOWARD GREEN';
+}else if(sim.bankTypes.includes(BANK1)){
+$('aim').textContent='BANK 1 HIT · ADJUST TOWARD GREEN';
+}else if(firstEvent){
+$('aim').textContent='BLUE = REBOUND PATH';
 }else{
-$('aim').textContent=
-'FOLLOW THE YELLOW DOTS';
+$('aim').textContent='YELLOW = FIRST FLIGHT';
 }
 }
-
-// LAUNCH
-// The release uses the same velocity and
-// starting phase as the final preview.
 
 function launch(dx,dy){
 const data=launchVelocity(dx,dy);
 
-// Recalculate at the precise release instant.
-// No stale prediction state is reused.
-
-const startPhase=targetPhase;
-
 shot=makeState(data.velocity);
-shot.startingPhase=startPhase;
+shot.startingPhase=targetPhase;
 shot.lastDisplayedContact=0;
 
 physicsAccumulator=0;
-
 ball.position.copy(START);
 ball.visible=true;
 viewModel.visible=false;
 
 hideGuide();
-activePrediction=null;
 
 trailPoints=[];
 trail.visible=effectsOn;
-
 $('power').textContent=
 'POWER: '+Math.round(data.power*100)+'%';
 
@@ -2230,21 +1858,12 @@ beep(470);
 const canvas=$('game');
 
 canvas.addEventListener('pointerdown',e=>{
-if(
-screen!=='playing'||
-over||locked||shot
-)return;
+if(screen!=='playing'||over||locked||shot)return;
 
-touch={
-x:e.clientX,
-y:e.clientY
-};
-
+touch={x:e.clientX,y:e.clientY};
 aimDirty=false;
 
-try{
-canvas.setPointerCapture(e.pointerId);
-}catch(err){}
+try{canvas.setPointerCapture(e.pointerId);}catch(err){}
 });
 
 canvas.addEventListener('pointermove',e=>{
@@ -2259,18 +1878,12 @@ return;
 }
 
 aimDirty=true;
-
 $('power').textContent=
-'POWER: '+
-Math.round(swipeToPower(-aimDY)*100)+'%';
+'POWER: '+Math.round(swipeToPower(-aimDY)*100)+'%';
 });
 
 canvas.addEventListener('pointerup',e=>{
-if(
-!touch||
-screen!=='playing'||
-locked||shot
-)return;
+if(!touch||screen!=='playing'||locked||shot)return;
 
 const dx=e.clientX-touch.x;
 const dy=e.clientY-touch.y;
@@ -2280,7 +1893,6 @@ aimDirty=false;
 hideGuide();
 
 if(dy>=-20)return;
-
 launch(dx,dy);
 });
 
@@ -2290,8 +1902,9 @@ aimDirty=false;
 hideGuide();
 });
 
-// REAL BALL UPDATE
-// Exactly the same DT and physicsStep as preview.
+// LIVE BALL
+// Same state, timestep, gravity, collisions
+// and target-phase calculation as prediction.
 
 function updateBall(dt){
 if(!shot||shot.done)return;
@@ -2299,9 +1912,6 @@ if(!shot||shot.done)return;
 physicsAccumulator+=dt;
 
 let steps=0;
-
-// Do not discard physics time during an active
-// flight. Carry unfinished steps forward.
 
 while(
 physicsAccumulator>=DT&&
@@ -2312,9 +1922,7 @@ const phase=
 shot.startingPhase+
 (shot.stepCount+1)*DT;
 
-const cx=targetXAt(phase);
-
-physicsStep(shot,cx);
+physicsStep(shot,targetXAt(phase));
 
 physicsAccumulator-=DT;
 steps++;
@@ -2322,16 +1930,15 @@ steps++;
 if(shot.contacts>shot.lastDisplayedContact){
 shot.lastDisplayedContact=shot.contacts;
 
-const event=
-shot.events[shot.events.length-1];
+const event=shot.events[shot.events.length-1];
 
-if(event){
-impactEffect(event.type);
+if(event?.type===BANK1){
+flashScreen('#a7e8ff');
+}else if(event?.type===BANK2){
+flashScreen('#ffe1a3');
 }
 
-beep(
-shot.lastImpact>1.5?420:320
-);
+beep(shot.lastImpact>1.5?420:320);
 }
 }
 
@@ -2342,23 +1949,16 @@ ballLight.position.copy(ball.position);
 
 if(effectsOn){
 trailPoints.push(ball.position.clone());
-
-if(trailPoints.length>13){
-trailPoints.shift();
-}
+if(trailPoints.length>13)trailPoints.shift();
 
 trail.geometry.dispose();
-
-trail.geometry=
-new THREE.BufferGeometry()
+trail.geometry=new THREE.BufferGeometry()
 .setFromPoints(trailPoints);
 
 trail.visible=trailPoints.length>1;
 }
 
-if(shot.done){
-finish(shot.scored,shot.perfect);
-}
+if(shot.done)finish(shot.scored,shot.perfect);
 }
 
 // FRAME UPDATE
@@ -2370,23 +1970,14 @@ if(shot&&!shot.done){
 updateBall(dt);
 
 targetGroup.position.x=targetXAt(
-shot.startingPhase+
-shot.stepCount*DT
+shot.startingPhase+shot.stepCount*DT
 );
 }else if(!over){
 targetPhase+=dt;
 targetGroup.position.x=targetXAt(targetPhase);
 }
 
-// Keep moving-target predictions current while
-// the player holds their finger in position.
-
-if(
-touch&&
-!shot&&
-aimDY<-15&&
-guideOn
-){
+if(touch&&!shot&&aimDY<-15&&guideOn){
 const moving=!!activeChallenge()?.moving;
 
 if(
@@ -2415,9 +2006,7 @@ return;
 
 if(visualFlash>0){
 visualFlash=Math.max(0,visualFlash-dt);
-
-$('flash').style.opacity=
-String(visualFlash/.15*.32);
+$('flash').style.opacity=String(visualFlash/.15*.32);
 }else{
 $('flash').style.opacity='0';
 }
@@ -2435,9 +2024,7 @@ challenges.filter(c=>completed.includes(c.id)).length+
 ' / '+challenges.length+
 ' · Earn medals for bonus coins';
 
-for(const tier of [
-'Rookie','Skilled','Expert','Legend'
-]){
+for(const tier of ['Rookie','Skilled','Expert','Legend']){
 const heading=document.createElement('h3');
 heading.textContent=tier;
 list.appendChild(heading);
@@ -2451,14 +2038,12 @@ i===0||
 completed.includes(challenges[i-1].id);
 
 const done=completed.includes(c.id);
-
 const card=document.createElement('div');
 card.className='item';
 
 const name=document.createElement('strong');
 name.textContent=
-(done?'✓ ':unlocked?'🎯 ':'🔒 ')+
-c.name;
+(done?'✓ ':unlocked?'🎯 ':'🔒 ')+c.name;
 
 const desc=document.createElement('p');
 desc.textContent=c.desc;
@@ -2471,20 +2056,14 @@ c.reward+' coins'+
 
 const medal=document.createElement('div');
 medal.style.fontSize='20px';
-medal.textContent=medalIcon(
-medals[c.id]||'none'
-);
+medal.textContent=medalIcon(medals[c.id]||'none');
 
 const btn=document.createElement('button');
-btn.textContent=
-done?'REPLAY':unlocked?'START':'LOCKED';
-
+btn.textContent=done?'REPLAY':unlocked?'START':'LOCKED';
 btn.disabled=!unlocked;
 btn.onclick=()=>startGame('challenge',c.id);
 
-card.append(
-name,desc,reward,medal,btn
-);
+card.append(name,desc,reward,medal,btn);
 list.appendChild(card);
 }
 }
@@ -2494,7 +2073,6 @@ list.appendChild(card);
 
 function renderShop(){
 $('shopCoins').textContent='Coins: '+coins;
-
 const list=$('skinList');
 list.innerHTML='';
 
@@ -2504,7 +2082,6 @@ card.className='item';
 
 const preview=document.createElement('div');
 preview.className='skinPreview';
-
 preview.style.background=
 'radial-gradient(circle at 30% 25%,white,'+
 s.color+' 45%,'+s.glow+')';
@@ -2513,8 +2090,7 @@ const title=document.createElement('strong');
 title.textContent=s.name;
 
 const price=document.createElement('p');
-price.textContent=
-s.price?s.price+' coins':'Free';
+price.textContent=s.price?s.price+' coins':'Free';
 
 const btn=document.createElement('button');
 
@@ -2523,7 +2099,6 @@ btn.textContent='EQUIPPED';
 btn.disabled=true;
 }else if(owned.includes(s.id)){
 btn.textContent='EQUIP';
-
 btn.onclick=()=>{
 equipped=s.id;
 updateSkin();
@@ -2531,27 +2106,20 @@ save();
 renderShop();
 };
 }else{
-btn.textContent=
-'BUY — '+s.price+' COINS';
-
+btn.textContent='BUY — '+s.price+' COINS';
 btn.disabled=coins<s.price;
-
 btn.onclick=()=>{
 if(coins<s.price)return;
-
 coins-=s.price;
 owned.push(s.id);
 equipped=s.id;
-
 updateSkin();
 save();
 renderShop();
 };
 }
 
-card.append(
-preview,title,price,btn
-);
+card.append(preview,title,price,btn);
 list.appendChild(card);
 }
 }
@@ -2559,41 +2127,21 @@ list.appendChild(card);
 // SETTINGS
 
 function renderSettings(){
-$('soundToggle').textContent=
-soundOn?'ON':'OFF';
-
-$('effectsToggle').textContent=
-effectsOn?'ON':'OFF';
-
-$('guideToggle').textContent=
-guideOn?'ON':'OFF';
+$('soundToggle').textContent=soundOn?'ON':'OFF';
+$('effectsToggle').textContent=effectsOn?'ON':'OFF';
+$('guideToggle').textContent=guideOn?'ON':'OFF';
 }
 
 // BUTTONS
 
-$('endlessBtn').onclick=()=>
-startGame('endless');
-
-$('practiceBtn').onclick=()=>
-startGame('practice');
-
-$('challengeBtn').onclick=()=>
-showScreen('challenges');
-
-$('challengeBack').onclick=()=>
-showScreen('menu');
-
-$('shopBtn').onclick=()=>
-showScreen('shop');
-
-$('shopBack').onclick=()=>
-showScreen('menu');
-
-$('settingsBtn').onclick=()=>
-showScreen('settings');
-
-$('settingsBack').onclick=()=>
-showScreen('menu');
+$('endlessBtn').onclick=()=>startGame('endless');
+$('practiceBtn').onclick=()=>startGame('practice');
+$('challengeBtn').onclick=()=>showScreen('challenges');
+$('challengeBack').onclick=()=>showScreen('menu');
+$('shopBtn').onclick=()=>showScreen('shop');
+$('shopBack').onclick=()=>showScreen('menu');
+$('settingsBtn').onclick=()=>showScreen('settings');
+$('settingsBack').onclick=()=>showScreen('menu');
 
 $('soundToggle').onclick=()=>{
 soundOn=!soundOn;
@@ -2617,21 +2165,16 @@ $('pause').onclick=()=>{
 session++;
 clearTimeout(finishTimer);
 clearTimeout(messageTimer);
-
 shot=null;
 locked=false;
 touch=null;
 physicsAccumulator=0;
-
 hideGuide();
 showScreen('menu');
 };
 
 $('again').onclick=()=>{
-if(
-mode==='challenge'&&
-completed.includes(challengeId)
-){
+if(mode==='challenge'&&completed.includes(challengeId)){
 showScreen('challenges');
 }else{
 startGame(mode,challengeId);
@@ -2644,9 +2187,7 @@ const clock=new THREE.Clock();
 
 function frame(){
 requestAnimationFrame(frame);
-
 const dt=Math.min(.04,clock.getDelta());
-
 update(dt);
 renderer.render(scene,camera);
 }
@@ -2654,9 +2195,7 @@ renderer.render(scene,camera);
 resetBall();
 updateHUD();
 showScreen('menu');
-
 $('loading').style.display='none';
-
 frame();
 
 </script>
