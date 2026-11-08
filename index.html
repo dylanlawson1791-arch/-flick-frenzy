@@ -5,7 +5,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="theme-color" content="#433650">
-<title>Flick Frenzy V0.9.25</title>
+<title>Flick Frenzy V0.9.26</title>
 <style>
 *{box-sizing:border-box}
 html,body{margin:0;width:100%;height:100%;overflow:hidden}
@@ -78,7 +78,7 @@ button:disabled{opacity:.45}
 <button class="menuBtn" id="challengeBtn">CHALLENGES</button>
 <button class="menuBtn secondary" id="shopBtn">BALL SHOP</button>
 <button class="menuBtn secondary" id="settingsBtn">SETTINGS</button>
-<p style="font-size:12px">V0.9.25 · Back-wall bank poster</p>
+<p style="font-size:12px">V0.9.26 · Improved rebounds</p>
 </div>
 </div>
 
@@ -106,7 +106,7 @@ button:disabled{opacity:.45}
 <div class="row"><strong>Sound</strong><button id="soundToggle"></button></div>
 <div class="row"><strong>Effects</strong><button id="effectsToggle"></button></div>
 <div class="row"><strong>Trajectory guide</strong><button id="guideToggle"></button></div>
-<p>Short upward swipes control power and height. Swipe diagonally to steer. BANK 1 is the computer screen. BANK 2 is the poster on the back wall.</p>
+<p>Swipe upward to shoot. Swipe diagonally to steer. BANK 1 is the computer screen. BANK 2 is the back-wall poster.</p>
 <button class="menuBtn secondary" id="settingsBack">BACK</button>
 </div>
 </div>
@@ -134,15 +134,16 @@ const BIN_TOP=BIN_BASE+BIN_H;
 const BANK_COMPUTER="computerBank";
 const BANK_WALL="wallBank";
 
+// V0.9.26: stronger rebounds and a softer bin rim.
 const PHYSICS={
-wallBounce:.88,
-computerBounce:.87,
+wallBounce:.91,
+computerBounce:.92,
 deskBounce:.70,
 objectBounce:.75,
 floorBounce:.57,
-rimBounce:.76,
-rimInwardAssist:.10,
-scoreOpeningExtra:.012,
+rimBounce:.55,
+rimInwardAssist:.14,
+scoreOpeningExtra:.025,
 minimumBankSpeed:.45
 };
 
@@ -430,10 +431,7 @@ textPanel(["YOU GOT","THIS!"],"#c6a16a","#3e3548"),
 -.57,2.02,-2.47,.46,.32
 );
 
-// V0.9.25: BANK 2 POSTER ON THE BACK WALL
-// The old floating teal panel is removed.
-// This poster sits on the back wall and has
-// its own physical rebound collider.
+// BANK 2 POSTER
 
 const bankPosterTexture=graphic(512,640,(c,w,h)=>{
 c.fillStyle="#355c69";
@@ -484,7 +482,7 @@ PHYSICS.wallBounce,
 BANK_WALL
 );
 
-// Calendar
+// CALENDAR
 
 const calendar=graphic(512,550,(c,w,h)=>{
 c.fillStyle="#eee8df";
@@ -522,7 +520,7 @@ box(.19,.18,.016,[yellow,coral,cyan,cream][i],x,y,-2.46);
 sphere(.018,black,x,y+.075,-2.435);
 }
 
-// V0.9.25: DESK FLUSH WITH BACK AND RIGHT WALL
+// DESK
 
 const DESK_TOP=.835;
 const deskShape=new THREE.Shape();
@@ -913,7 +911,7 @@ opacity:.6
 scene.add(trail);
 trail.visible=false;
 
-// TRAJECTORY GUIDE
+// V0.9.26: REDUCED TRAJECTORY GUIDE
 
 const guideDots=[];
 const dotMaterial=new THREE.MeshBasicMaterial({
@@ -922,9 +920,9 @@ depthTest:false,
 depthWrite:false
 });
 
-for(let i=0;i<80;i++){
+for(let i=0;i<22;i++){
 const d=mesh(
-new THREE.SphereGeometry(.028,8,6),
+new THREE.SphereGeometry(.021,8,6),
 dotMaterial,0,-100,0
 );
 d.visible=false;
@@ -934,9 +932,9 @@ guideDots.push(d);
 
 const bounceDots=[];
 
-for(let i=0;i<12;i++){
+for(let i=0;i<1;i++){
 const d=mesh(
-new THREE.SphereGeometry(.055,10,8),
+new THREE.SphereGeometry(.045,10,8),
 new THREE.MeshBasicMaterial({
 color:"#f17b9f",
 depthTest:false,
@@ -1359,6 +1357,7 @@ if(speed>=-.01)return false;
 const impact=-speed;
 let bounce=e;
 
+// Retain slightly more speed from bank surfaces.
 if(
 (
 type==="wall"||
@@ -1367,7 +1366,7 @@ type===BANK_WALL||
 type===BANK_COMPUTER
 )&&impact>1.1
 ){
-bounce=Math.min(.94,e+.035);
+bounce=Math.min(.96,e+.025);
 }
 
 if(impact<.13){
@@ -1381,8 +1380,8 @@ const tangent=s.v.clone().addScaledVector(n,-normalSpeed);
 
 const friction=
 type==="desk"?.965:
-(type==="wall"||type===BANK_WALL)?.992:
-(type==="computer"||type===BANK_COMPUTER)?.985:
+(type==="wall"||type===BANK_WALL)?.995:
+(type==="computer"||type===BANK_COMPUTER)?.992:
 .975;
 
 s.v.copy(n.clone().multiplyScalar(normalSpeed));
@@ -1648,7 +1647,7 @@ s.done=true;
 }
 }
 
-// TRAJECTORY GUIDE
+// V0.9.26: SHORTER, CLEANER TRAJECTORY PREVIEW
 
 function drawGuide(dx,dy){
 if(!guideOn){
@@ -1660,33 +1659,40 @@ const data=launchVelocity(dx,dy);
 const sim=makeState(data.velocity);
 const points=[sim.p.clone()];
 
+let firstBounceAt=-1;
+
 for(let i=0;i<1200;i++){
 physicsStep(sim,1/240,targetGroup.position.x);
 
-if(i%6===0){
+if(i%8===0){
 points.push(sim.p.clone());
 }
 
-if(sim.done)break;
+if(firstBounceAt<0&&sim.events.length){
+firstBounceAt=i;
+}
+
+if(
+sim.done||
+i>=280||
+(firstBounceAt>=0&&i-firstBounceAt>=80)
+){
+break;
+}
 }
 
 for(let i=0;i<guideDots.length;i++){
-const idx=Math.floor(
-i*(points.length-1)/
-Math.max(1,guideDots.length-1)
-);
-
 const d=guideDots[i];
-d.visible=points.length>1;
+const idx=Math.round(i*2.3);
+
+d.visible=idx<points.length;
 
 if(d.visible){
 d.position.copy(points[idx]);
 }
 }
 
-dotMaterial.color.set(
-sim.scored?"#75ffae":"#ffe4a2"
-);
+dotMaterial.color.set("#ffe4a2");
 
 for(let i=0;i<bounceDots.length;i++){
 const d=bounceDots[i];
@@ -1697,24 +1703,8 @@ d.position.copy(sim.events[i]);
 }
 }
 
-if(sim.scored){
-if(sim.bankTypes.includes(BANK_COMPUTER)){
-$("aim").textContent=
-"COMPUTER BANK — PREDICTED SCORE!";
-}else if(sim.bankTypes.includes(BANK_WALL)){
-$("aim").textContent=
-"POSTER BANK — PREDICTED SCORE!";
-}else if(sim.banks){
-$("aim").textContent=
-"LUCKY BANK — PREDICTED SCORE!";
-}else{
-$("aim").textContent="PREDICTED SCORE!";
-}
-}else{
-$("aim").textContent=sim.banks?
-"REBOUND PATH · "+sim.banks+" BOUNCE(S)":
-"AIM FOR A BANK SURFACE";
-}
+$("aim").textContent=sim.events.length?
+"REBOUND PREVIEW":"SWIPE TO AIM";
 }
 
 function launch(dx,dy){
